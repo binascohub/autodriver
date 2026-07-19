@@ -43,6 +43,7 @@ class SettingsActivity : AppCompatActivity() {
             intent.putExtra(OverlayCardService.EXTRA_ACCEPT_THRESHOLD, Config.acceptWhenValueGreaterThan)
             intent.putExtra(OverlayCardService.EXTRA_REJECT_THRESHOLD, Config.rejectWhenValueLessOrEqualTo)
             intent.putExtra(OverlayCardService.EXTRA_VISIBLE_SECONDS, visibleSecondsSlider.value.toInt())
+            intent.putExtra(OverlayCardService.EXTRA_DESTINATION, "São Gabriel, Colombo")
             startService(intent)
         }
 

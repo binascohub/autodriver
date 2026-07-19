@@ -123,9 +123,38 @@ class RideAccessibilityService : AccessibilityService() {
         intent.putExtra(OverlayCardService.EXTRA_ACCEPT_THRESHOLD, Config.acceptWhenValueGreaterThan)
         intent.putExtra(OverlayCardService.EXTRA_REJECT_THRESHOLD, Config.rejectWhenValueLessOrEqualTo)
         intent.putExtra(OverlayCardService.EXTRA_VISIBLE_SECONDS, Config.overlayVisibleSeconds)
+        intent.putExtra(OverlayCardService.EXTRA_DESTINATION, extractDestination(texts))
         startService(intent)
         offerShowing = true
         return true
+    }
+
+    private fun extractDestination(texts: List<String>): String {
+        return texts.asSequence()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .mapNotNull { line ->
+                val segments = line.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+                when {
+                    segments.size >= 3 && line.contains(Regex("\\b(Rua|Av|Avenida|R\\.|Trav|Praça|Alameda)\\b"), ignoreCase = true) -> {
+                        segments.takeLast(2).joinToString(", ")
+                    }
+                    segments.size >= 2 && line.contains(Regex("\\b(São|Sao|Santa|Vila|Centro|Colombo|Gabriel)\\b"), ignoreCase = true) -> {
+                        segments.takeLast(2).joinToString(", ")
+                    }
+                    else -> null
+                }
+            }
+            .firstOrNull()
+            ?: texts.asSequence()
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .mapNotNull { line ->
+                    val segments = line.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+                    if (segments.size >= 2) segments.takeLast(2).joinToString(", ") else null
+                }
+                .firstOrNull()
+            ?: ""
     }
 
     private fun collectTexts(node: AccessibilityNodeInfo, out: MutableList<String>) {
