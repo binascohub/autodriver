@@ -1,0 +1,90 @@
+[
+    {
+        "merged": "com.example.autodriver.app-debug-38:/layout_activity_login.xml.flat",
+        "source": "com.example.autodriver.app-main-40:/layout/activity_login.xml"
+    },
+    {
+        "merged": "com.example.autodriver.app-debug-38:/color_tw_switch_thumb.xml.flat",
+        "source": "com.example.autodriver.app-main-40:/color/tw_switch_thumb.xml"
+    },
+    {
+        "merged": "com.example.autodriver.app-debug-38:/layout_activity_settings.xml.flat",
+        "source": "com.example.autodriver.app-main-40:/layout/activity_settings.xml"
+    },
+    {
+        "merged": "com.example.autodriver.app-debug-38:/layout_overlay_value_card.xml.flat",
+        "source": "com.example.autodriver.app-main-40:/layout/overlay_value_card.xml"
+    },
+    {
+        "merged": "com.example.autodriver.app-debug-38:/layout_activity_main.xml.flat",
+        "source": "com.example.autodriver.app-main-40:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.example.autodriver.app-debug-38:/mipmap-xxxhdpi_ic_launcher_round.png.flat",
+        "source": "com.example.autodriver.app-main-40:/mipmap-xxxhdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "com.example.autodriver.app-debug-38:/layout_activity_about.xml.flat",
+        "source": "com.example.autodriver.app-main-40:/layout/activity_about.xml"
+    },
+    {
+        "merged": "com.example.autodriver.app-debug-38:/mipmap-xxhdpi_ic_launcher.png.flat",
+        "source": "com.example.autodriver.app-main-40:/mipmap-xxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.example.autodriver.app-debug-38:/mipmap-xxxhdpi_ic_launcher.png.flat",
+        "source": "com.example.autodriver.app-main-40:/mipmap-xxxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.example.autodriver.app-debug-38:/mipmap-hdpi_ic_launcher_round.png.flat",
+        "source": "com.example.autodriver.app-main-40:/mipmap-hdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "com.example.autodriver.app-debug-38:/mipmap-xhdpi_ic_launcher.png.flat",
+        "source": "com.example.autodriver.app-main-40:/mipmap-xhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.example.autodriver.app-debug-38:/color_tw_switch_track.xml.flat",
+        "source": "com.example.autodriver.app-main-40:/color/tw_switch_track.xml"
+    },
+    {
+        "merged": "com.example.autodriver.app-debug-38:/mipmap-hdpi_ic_launcher.png.flat",
+        "source": "com.example.autodriver.app-main-40:/mipmap-hdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.example.autodriver.app-debug-38:/drawable_tw_input_bg.xml.flat",
+        "source": "com.example.autodriver.app-main-40:/drawable/tw_input_bg.xml"
+    },
+    {
+        "merged": "com.example.autodriver.app-debug-38:/xml_accessibility_service_config.xml.flat",
+        "source": "com.example.autodriver.app-main-40:/xml/accessibility_service_config.xml"
+    },
+    {
+        "merged": "com.example.autodriver.app-debug-38:/drawable_tw_button_bg.xml.flat",
+        "source": "com.example.autodriver.app-main-40:/drawable/tw_button_bg.xml"
+    },
+    {
+        "merged": "com.example.autodriver.app-debug-38:/mipmap-mdpi_ic_launcher.png.flat",
+        "source": "com.example.autodriver.app-main-40:/mipmap-mdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.example.autodriver.app-debug-38:/mipmap-xxhdpi_ic_launcher_round.png.flat",
+        "source": "com.example.autodriver.app-main-40:/mipmap-xxhdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "com.example.autodriver.app-debug-38:/layout_item_location.xml.flat",
+        "source": "com.example.autodriver.app-main-40:/layout/item_location.xml"
+    },
+    {
+        "merged": "com.example.autodriver.app-debug-38:/drawable-nodpi_logo_autodriver.png.flat",
+        "source": "com.example.autodriver.app-main-40:/drawable-nodpi/logo_autodriver.png"
+    },
+    {
+        "merged": "com.example.autodriver.app-debug-38:/mipmap-mdpi_ic_launcher_round.png.flat",
+        "source": "com.example.autodriver.app-main-40:/mipmap-mdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "com.example.autodriver.app-debug-38:/mipmap-xhdpi_ic_launcher_round.png.flat",
+        "source": "com.example.autodriver.app-main-40:/mipmap-xhdpi/ic_launcher_round.png"
+    }
+]

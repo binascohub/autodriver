@@ -1,0 +1,74 @@
+package com.example.autodriver
+
+import android.content.Intent
+import android.os.Bundle
+import android.provider.Settings
+import android.widget.Button
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import com.google.android.material.slider.Slider
+
+class SettingsActivity : AppCompatActivity() {
+
+    private lateinit var visibleSecondsSlider: Slider
+    private lateinit var visibleSecondsLabel: TextView
+    private lateinit var accessibilityPermissionStatus: TextView
+    private lateinit var accessibilityPermissionButton: Button
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_settings)
+
+        findViewById<Button>(R.id.back_button).setOnClickListener { finish() }
+
+        visibleSecondsSlider = findViewById(R.id.visible_seconds_slider)
+        visibleSecondsLabel = findViewById(R.id.visible_seconds_label)
+        visibleSecondsSlider.value = Config.overlayVisibleSeconds.toFloat()
+        visibleSecondsLabel.text = "Tempo visível: ${Config.overlayVisibleSeconds}s"
+        visibleSecondsSlider.addOnChangeListener { _, value, _ ->
+            Config.overlayVisibleSeconds = value.toInt()
+            visibleSecondsLabel.text = "Tempo visível: ${value.toInt()}s"
+        }
+
+        findViewById<Button>(R.id.test_overlay_button).setOnClickListener {
+            if (!Settings.canDrawOverlays(this)) {
+                Toast.makeText(this, "Conceda a permissão de sobreposição primeiro", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val intent = Intent(this, OverlayCardService::class.java)
+            intent.putExtra(OverlayCardService.EXTRA_TOTAL_VALUE, 10.96f)
+            intent.putExtra(OverlayCardService.EXTRA_TOTAL_KM, 3.2f + 2.6f)
+            intent.putExtra(OverlayCardService.EXTRA_ACCEPT_THRESHOLD, Config.acceptWhenValueGreaterThan)
+            intent.putExtra(OverlayCardService.EXTRA_REJECT_THRESHOLD, Config.rejectWhenValueLessOrEqualTo)
+            intent.putExtra(OverlayCardService.EXTRA_VISIBLE_SECONDS, visibleSecondsSlider.value.toInt())
+            startService(intent)
+        }
+
+        accessibilityPermissionStatus = findViewById(R.id.accessibility_permission_status)
+        accessibilityPermissionButton = findViewById(R.id.accessibility_permission_button)
+        accessibilityPermissionButton.setOnClickListener {
+            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateAccessibilityPermissionStatus()
+    }
+
+    private fun updateAccessibilityPermissionStatus() {
+        val enabledServices = Settings.Secure.getString(
+            contentResolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        ).orEmpty()
+        val granted = enabledServices.contains("$packageName/${RideAccessibilityService::class.java.name}")
+
+        accessibilityPermissionStatus.text = if (granted) "Concedida" else "Não concedida"
+        accessibilityPermissionStatus.setTextColor(
+            ContextCompat.getColor(this, if (granted) R.color.tw_green_400 else R.color.tw_red_400)
+        )
+        accessibilityPermissionButton.visibility = if (granted) android.view.View.GONE else android.view.View.VISIBLE
+    }
+}

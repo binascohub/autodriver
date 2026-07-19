@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="tw_bg">#0F172A</color>
+    <color name="tw_header_bg">#0B1220</color>
+    <color name="tw_surface">#1E293B</color>
+    <color name="tw_border">#334155</color>
+    <color name="tw_input_bg">#0F172A</color>
+    <color name="tw_text_primary">#F8FAFC</color>
+    <color name="tw_text_secondary">#94A3B8</color>
+    <color name="tw_blue_600">#407EB8</color>
+    <color name="tw_red_400">#F87171</color>
+    <color name="tw_red_600">#DC2626</color>
+    <color name="tw_green_400">#4ADE80</color>
+    <color name="tw_green_600">#16A34A</color>
+    <color name="tw_white">#FFFFFF</color>
+</resources>

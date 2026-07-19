@@ -1,0 +1,320 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.example.autodriver"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="24"
+9        android:targetSdkVersion="34" />
+10
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:4:5-67
+11-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:4:22-64
+12    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+12-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:5:5-78
+12-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:5:22-75
+13
+14    <permission
+14-->[androidx.core:core:1.13.1] /home/binasco/.gradle/caches/transforms-4/8e0a0bff2d388b6446750efdf4a5758f/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
+15        android:name="com.example.autodriver.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+15-->[androidx.core:core:1.13.1] /home/binasco/.gradle/caches/transforms-4/8e0a0bff2d388b6446750efdf4a5758f/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
+16        android:protectionLevel="signature" />
+16-->[androidx.core:core:1.13.1] /home/binasco/.gradle/caches/transforms-4/8e0a0bff2d388b6446750efdf4a5758f/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
+17
+18    <uses-permission android:name="com.example.autodriver.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" /> <!-- Although the *SdkVersion is captured in gradle build files, this is required for non gradle builds -->
+18-->[androidx.core:core:1.13.1] /home/binasco/.gradle/caches/transforms-4/8e0a0bff2d388b6446750efdf4a5758f/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
+18-->[androidx.core:core:1.13.1] /home/binasco/.gradle/caches/transforms-4/8e0a0bff2d388b6446750efdf4a5758f/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
+19    <!-- <uses-sdk android:minSdkVersion="14"/> -->
+20    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+20-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /home/binasco/.gradle/caches/transforms-4/97e132eedbbc24660e89a492168689f5/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:25:5-79
+20-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /home/binasco/.gradle/caches/transforms-4/97e132eedbbc24660e89a492168689f5/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:25:22-76
+21
+22    <application
+22-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:7:5-44:19
+23        android:allowBackup="true"
+23-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:8:9-35
+24        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+24-->[androidx.core:core:1.13.1] /home/binasco/.gradle/caches/transforms-4/8e0a0bff2d388b6446750efdf4a5758f/transformed/core-1.13.1/AndroidManifest.xml:28:18-86
+25        android:debuggable="true"
+26        android:extractNativeLibs="false"
+27        android:icon="@mipmap/ic_launcher"
+27-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:9:9-43
+28        android:label="@string/app_name"
+28-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:10:9-41
+29        android:roundIcon="@mipmap/ic_launcher_round"
+29-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:11:9-54
+30        android:theme="@style/Theme.MaterialComponents.NoActionBar" >
+30-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:12:9-68
+31        <activity
+31-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:13:9-20:20
+32            android:name="com.example.autodriver.MainActivity"
+32-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:14:13-41
+33            android:exported="true" >
+33-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:15:13-36
+34            <intent-filter>
+34-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:16:13-19:29
+35                <action android:name="android.intent.action.MAIN" />
+35-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:17:17-69
+35-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:17:25-66
+36
+37                <category android:name="android.intent.category.LAUNCHER" />
+37-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:18:17-77
+37-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:18:27-74
+38            </intent-filter>
+39        </activity>
+40        <activity
+40-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:21:9-23:40
+41            android:name="com.example.autodriver.LoginActivity"
+41-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:22:13-42
+42            android:exported="false" />
+42-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:23:13-37
+43        <activity
+43-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:24:9-26:40
+44            android:name="com.example.autodriver.SettingsActivity"
+44-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:25:13-45
+45            android:exported="false" />
+45-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:26:13-37
+46        <activity
+46-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:27:9-29:40
+47            android:name="com.example.autodriver.AboutActivity"
+47-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:28:13-42
+48            android:exported="false" />
+48-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:29:13-37
+49
+50        <service
+50-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:30:9-32:40
+51            android:name="com.example.autodriver.OverlayCardService"
+51-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:31:13-47
+52            android:exported="false" />
+52-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:32:13-37
+53        <service
+53-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:33:9-43:19
+54            android:name="com.example.autodriver.RideAccessibilityService"
+54-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:34:13-53
+55            android:exported="false"
+55-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:35:13-37
+56            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" >
+56-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:36:13-79
+57            <intent-filter>
+57-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:37:13-39:29
+58                <action android:name="android.accessibilityservice.AccessibilityService" />
+58-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:38:17-92
+58-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:38:25-89
+59            </intent-filter>
+60
+61            <meta-data
+61-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:40:13-42:72
+62                android:name="android.accessibilityservice"
+62-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:41:17-60
+63                android:resource="@xml/accessibility_service_config" />
+63-->/home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:42:17-69
+64        </service>
+65        <service
+65-->[com.google.android.gms:play-services-mlkit-text-recognition-common:19.1.0] /home/binasco/.gradle/caches/transforms-4/ba5cc92835e34edd877e772e21719916/transformed/play-services-mlkit-text-recognition-common-19.1.0/AndroidManifest.xml:9:9-15:19
+66            android:name="com.google.mlkit.common.internal.MlKitComponentDiscoveryService"
+66-->[com.google.android.gms:play-services-mlkit-text-recognition-common:19.1.0] /home/binasco/.gradle/caches/transforms-4/ba5cc92835e34edd877e772e21719916/transformed/play-services-mlkit-text-recognition-common-19.1.0/AndroidManifest.xml:10:13-91
+67            android:directBootAware="true"
+67-->[com.google.mlkit:common:18.11.0] /home/binasco/.gradle/caches/transforms-4/098d6991556d8ee249fb1c76c0e28b4c/transformed/common-18.11.0/AndroidManifest.xml:17:13-43
+68            android:exported="false" >
+68-->[com.google.android.gms:play-services-mlkit-text-recognition-common:19.1.0] /home/binasco/.gradle/caches/transforms-4/ba5cc92835e34edd877e772e21719916/transformed/play-services-mlkit-text-recognition-common-19.1.0/AndroidManifest.xml:11:13-37
+69            <meta-data
+69-->[com.google.android.gms:play-services-mlkit-text-recognition-common:19.1.0] /home/binasco/.gradle/caches/transforms-4/ba5cc92835e34edd877e772e21719916/transformed/play-services-mlkit-text-recognition-common-19.1.0/AndroidManifest.xml:12:13-14:85
+70                android:name="com.google.firebase.components:com.google.mlkit.vision.text.internal.TextRegistrar"
+70-->[com.google.android.gms:play-services-mlkit-text-recognition-common:19.1.0] /home/binasco/.gradle/caches/transforms-4/ba5cc92835e34edd877e772e21719916/transformed/play-services-mlkit-text-recognition-common-19.1.0/AndroidManifest.xml:13:17-114
+71                android:value="com.google.firebase.components.ComponentRegistrar" />
+71-->[com.google.android.gms:play-services-mlkit-text-recognition-common:19.1.0] /home/binasco/.gradle/caches/transforms-4/ba5cc92835e34edd877e772e21719916/transformed/play-services-mlkit-text-recognition-common-19.1.0/AndroidManifest.xml:14:17-82
+72            <meta-data
+72-->[com.google.mlkit:vision-common:17.3.0] /home/binasco/.gradle/caches/transforms-4/f8d4b8485aaa5c7f55dd8b62e0d3d6f0/transformed/vision-common-17.3.0/AndroidManifest.xml:12:13-14:85
+73                android:name="com.google.firebase.components:com.google.mlkit.vision.common.internal.VisionCommonRegistrar"
+73-->[com.google.mlkit:vision-common:17.3.0] /home/binasco/.gradle/caches/transforms-4/f8d4b8485aaa5c7f55dd8b62e0d3d6f0/transformed/vision-common-17.3.0/AndroidManifest.xml:13:17-124
+74                android:value="com.google.firebase.components.ComponentRegistrar" />
+74-->[com.google.mlkit:vision-common:17.3.0] /home/binasco/.gradle/caches/transforms-4/f8d4b8485aaa5c7f55dd8b62e0d3d6f0/transformed/vision-common-17.3.0/AndroidManifest.xml:14:17-82
+75            <meta-data
+75-->[com.google.mlkit:common:18.11.0] /home/binasco/.gradle/caches/transforms-4/098d6991556d8ee249fb1c76c0e28b4c/transformed/common-18.11.0/AndroidManifest.xml:20:13-22:85
+76                android:name="com.google.firebase.components:com.google.mlkit.common.internal.CommonComponentRegistrar"
+76-->[com.google.mlkit:common:18.11.0] /home/binasco/.gradle/caches/transforms-4/098d6991556d8ee249fb1c76c0e28b4c/transformed/common-18.11.0/AndroidManifest.xml:21:17-120
+77                android:value="com.google.firebase.components.ComponentRegistrar" />
+77-->[com.google.mlkit:common:18.11.0] /home/binasco/.gradle/caches/transforms-4/098d6991556d8ee249fb1c76c0e28b4c/transformed/common-18.11.0/AndroidManifest.xml:22:17-82
+78        </service>
+79
+80        <provider
+80-->[com.google.mlkit:common:18.11.0] /home/binasco/.gradle/caches/transforms-4/098d6991556d8ee249fb1c76c0e28b4c/transformed/common-18.11.0/AndroidManifest.xml:9:9-13:38
+81            android:name="com.google.mlkit.common.internal.MlKitInitProvider"
+81-->[com.google.mlkit:common:18.11.0] /home/binasco/.gradle/caches/transforms-4/098d6991556d8ee249fb1c76c0e28b4c/transformed/common-18.11.0/AndroidManifest.xml:10:13-78
+82            android:authorities="com.example.autodriver.mlkitinitprovider"
+82-->[com.google.mlkit:common:18.11.0] /home/binasco/.gradle/caches/transforms-4/098d6991556d8ee249fb1c76c0e28b4c/transformed/common-18.11.0/AndroidManifest.xml:11:13-69
+83            android:exported="false"
+83-->[com.google.mlkit:common:18.11.0] /home/binasco/.gradle/caches/transforms-4/098d6991556d8ee249fb1c76c0e28b4c/transformed/common-18.11.0/AndroidManifest.xml:12:13-37
+84            android:initOrder="99" />
+84-->[com.google.mlkit:common:18.11.0] /home/binasco/.gradle/caches/transforms-4/098d6991556d8ee249fb1c76c0e28b4c/transformed/common-18.11.0/AndroidManifest.xml:13:13-35
+85        <provider
+85-->[androidx.emoji2:emoji2:1.3.0] /home/binasco/.gradle/caches/transforms-4/192474c036ec43764acdf6f3e34ae042/transformed/emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
+86            android:name="androidx.startup.InitializationProvider"
+86-->[androidx.emoji2:emoji2:1.3.0] /home/binasco/.gradle/caches/transforms-4/192474c036ec43764acdf6f3e34ae042/transformed/emoji2-1.3.0/AndroidManifest.xml:25:13-67
+87            android:authorities="com.example.autodriver.androidx-startup"
+87-->[androidx.emoji2:emoji2:1.3.0] /home/binasco/.gradle/caches/transforms-4/192474c036ec43764acdf6f3e34ae042/transformed/emoji2-1.3.0/AndroidManifest.xml:26:13-68
+88            android:exported="false" >
+88-->[androidx.emoji2:emoji2:1.3.0] /home/binasco/.gradle/caches/transforms-4/192474c036ec43764acdf6f3e34ae042/transformed/emoji2-1.3.0/AndroidManifest.xml:27:13-37
+89            <meta-data
+89-->[androidx.emoji2:emoji2:1.3.0] /home/binasco/.gradle/caches/transforms-4/192474c036ec43764acdf6f3e34ae042/transformed/emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+90                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+90-->[androidx.emoji2:emoji2:1.3.0] /home/binasco/.gradle/caches/transforms-4/192474c036ec43764acdf6f3e34ae042/transformed/emoji2-1.3.0/AndroidManifest.xml:30:17-75
+91                android:value="androidx.startup" />
+91-->[androidx.emoji2:emoji2:1.3.0] /home/binasco/.gradle/caches/transforms-4/192474c036ec43764acdf6f3e34ae042/transformed/emoji2-1.3.0/AndroidManifest.xml:31:17-49
+92            <meta-data
+92-->[androidx.lifecycle:lifecycle-process:2.8.4] /home/binasco/.gradle/caches/transforms-4/5b8ea465910fd80be9fa1407ed6ac524/transformed/lifecycle-process-2.8.4/AndroidManifest.xml:29:13-31:52
+93                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+93-->[androidx.lifecycle:lifecycle-process:2.8.4] /home/binasco/.gradle/caches/transforms-4/5b8ea465910fd80be9fa1407ed6ac524/transformed/lifecycle-process-2.8.4/AndroidManifest.xml:30:17-78
+94                android:value="androidx.startup" />
+94-->[androidx.lifecycle:lifecycle-process:2.8.4] /home/binasco/.gradle/caches/transforms-4/5b8ea465910fd80be9fa1407ed6ac524/transformed/lifecycle-process-2.8.4/AndroidManifest.xml:31:17-49
+95            <meta-data
+95-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/binasco/.gradle/caches/transforms-4/4e16cc280eaa0a1f5277c41379c36ea2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
+96                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+96-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/binasco/.gradle/caches/transforms-4/4e16cc280eaa0a1f5277c41379c36ea2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
+97                android:value="androidx.startup" />
+97-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/binasco/.gradle/caches/transforms-4/4e16cc280eaa0a1f5277c41379c36ea2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
+98        </provider>
+99
+100        <service
+100-->[androidx.credentials:credentials-play-services-auth:1.3.0] /home/binasco/.gradle/caches/transforms-4/7cf00eaee691ff71db23bd13ed97e4f0/transformed/credentials-play-services-auth-1.3.0/AndroidManifest.xml:24:9-32:19
+101            android:name="androidx.credentials.playservices.CredentialProviderMetadataHolder"
+101-->[androidx.credentials:credentials-play-services-auth:1.3.0] /home/binasco/.gradle/caches/transforms-4/7cf00eaee691ff71db23bd13ed97e4f0/transformed/credentials-play-services-auth-1.3.0/AndroidManifest.xml:25:13-94
+102            android:enabled="true"
+102-->[androidx.credentials:credentials-play-services-auth:1.3.0] /home/binasco/.gradle/caches/transforms-4/7cf00eaee691ff71db23bd13ed97e4f0/transformed/credentials-play-services-auth-1.3.0/AndroidManifest.xml:26:13-35
+103            android:exported="false" >
+103-->[androidx.credentials:credentials-play-services-auth:1.3.0] /home/binasco/.gradle/caches/transforms-4/7cf00eaee691ff71db23bd13ed97e4f0/transformed/credentials-play-services-auth-1.3.0/AndroidManifest.xml:27:13-37
+104            <meta-data
+104-->[androidx.credentials:credentials-play-services-auth:1.3.0] /home/binasco/.gradle/caches/transforms-4/7cf00eaee691ff71db23bd13ed97e4f0/transformed/credentials-play-services-auth-1.3.0/AndroidManifest.xml:29:13-31:104
+105                android:name="androidx.credentials.CREDENTIAL_PROVIDER_KEY"
+105-->[androidx.credentials:credentials-play-services-auth:1.3.0] /home/binasco/.gradle/caches/transforms-4/7cf00eaee691ff71db23bd13ed97e4f0/transformed/credentials-play-services-auth-1.3.0/AndroidManifest.xml:30:17-76
+106                android:value="androidx.credentials.playservices.CredentialProviderPlayServicesImpl" />
+106-->[androidx.credentials:credentials-play-services-auth:1.3.0] /home/binasco/.gradle/caches/transforms-4/7cf00eaee691ff71db23bd13ed97e4f0/transformed/credentials-play-services-auth-1.3.0/AndroidManifest.xml:31:17-101
+107        </service>
+108
+109        <activity
+109-->[androidx.credentials:credentials-play-services-auth:1.3.0] /home/binasco/.gradle/caches/transforms-4/7cf00eaee691ff71db23bd13ed97e4f0/transformed/credentials-play-services-auth-1.3.0/AndroidManifest.xml:34:9-41:20
+110            android:name="androidx.credentials.playservices.HiddenActivity"
+110-->[androidx.credentials:credentials-play-services-auth:1.3.0] /home/binasco/.gradle/caches/transforms-4/7cf00eaee691ff71db23bd13ed97e4f0/transformed/credentials-play-services-auth-1.3.0/AndroidManifest.xml:35:13-76
+111            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+111-->[androidx.credentials:credentials-play-services-auth:1.3.0] /home/binasco/.gradle/caches/transforms-4/7cf00eaee691ff71db23bd13ed97e4f0/transformed/credentials-play-services-auth-1.3.0/AndroidManifest.xml:36:13-87
+112            android:enabled="true"
+112-->[androidx.credentials:credentials-play-services-auth:1.3.0] /home/binasco/.gradle/caches/transforms-4/7cf00eaee691ff71db23bd13ed97e4f0/transformed/credentials-play-services-auth-1.3.0/AndroidManifest.xml:37:13-35
+113            android:exported="false"
+113-->[androidx.credentials:credentials-play-services-auth:1.3.0] /home/binasco/.gradle/caches/transforms-4/7cf00eaee691ff71db23bd13ed97e4f0/transformed/credentials-play-services-auth-1.3.0/AndroidManifest.xml:38:13-37
+114            android:fitsSystemWindows="true"
+114-->[androidx.credentials:credentials-play-services-auth:1.3.0] /home/binasco/.gradle/caches/transforms-4/7cf00eaee691ff71db23bd13ed97e4f0/transformed/credentials-play-services-auth-1.3.0/AndroidManifest.xml:39:13-45
+115            android:theme="@style/Theme.Hidden" >
+115-->[androidx.credentials:credentials-play-services-auth:1.3.0] /home/binasco/.gradle/caches/transforms-4/7cf00eaee691ff71db23bd13ed97e4f0/transformed/credentials-play-services-auth-1.3.0/AndroidManifest.xml:40:13-48
+116        </activity>
+117        <activity
+117-->[com.google.android.gms:play-services-auth:21.1.1] /home/binasco/.gradle/caches/transforms-4/64b6bc88c9efeac5e3c615235a86d524/transformed/play-services-auth-21.1.1/AndroidManifest.xml:23:9-27:75
+118            android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity"
+118-->[com.google.android.gms:play-services-auth:21.1.1] /home/binasco/.gradle/caches/transforms-4/64b6bc88c9efeac5e3c615235a86d524/transformed/play-services-auth-21.1.1/AndroidManifest.xml:24:13-93
+119            android:excludeFromRecents="true"
+119-->[com.google.android.gms:play-services-auth:21.1.1] /home/binasco/.gradle/caches/transforms-4/64b6bc88c9efeac5e3c615235a86d524/transformed/play-services-auth-21.1.1/AndroidManifest.xml:25:13-46
+120            android:exported="false"
+120-->[com.google.android.gms:play-services-auth:21.1.1] /home/binasco/.gradle/caches/transforms-4/64b6bc88c9efeac5e3c615235a86d524/transformed/play-services-auth-21.1.1/AndroidManifest.xml:26:13-37
+121            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+121-->[com.google.android.gms:play-services-auth:21.1.1] /home/binasco/.gradle/caches/transforms-4/64b6bc88c9efeac5e3c615235a86d524/transformed/play-services-auth-21.1.1/AndroidManifest.xml:27:13-72
+122        <!--
+123            Service handling Google Sign-In user revocation. For apps that do not integrate with
+124            Google Sign-In, this service will never be started.
+125        -->
+126        <service
+126-->[com.google.android.gms:play-services-auth:21.1.1] /home/binasco/.gradle/caches/transforms-4/64b6bc88c9efeac5e3c615235a86d524/transformed/play-services-auth-21.1.1/AndroidManifest.xml:33:9-37:51
+127            android:name="com.google.android.gms.auth.api.signin.RevocationBoundService"
+127-->[com.google.android.gms:play-services-auth:21.1.1] /home/binasco/.gradle/caches/transforms-4/64b6bc88c9efeac5e3c615235a86d524/transformed/play-services-auth-21.1.1/AndroidManifest.xml:34:13-89
+128            android:exported="true"
+128-->[com.google.android.gms:play-services-auth:21.1.1] /home/binasco/.gradle/caches/transforms-4/64b6bc88c9efeac5e3c615235a86d524/transformed/play-services-auth-21.1.1/AndroidManifest.xml:35:13-36
+129            android:permission="com.google.android.gms.auth.api.signin.permission.REVOCATION_NOTIFICATION"
+129-->[com.google.android.gms:play-services-auth:21.1.1] /home/binasco/.gradle/caches/transforms-4/64b6bc88c9efeac5e3c615235a86d524/transformed/play-services-auth-21.1.1/AndroidManifest.xml:36:13-107
+130            android:visibleToInstantApps="true" />
+130-->[com.google.android.gms:play-services-auth:21.1.1] /home/binasco/.gradle/caches/transforms-4/64b6bc88c9efeac5e3c615235a86d524/transformed/play-services-auth-21.1.1/AndroidManifest.xml:37:13-48
+131
+132        <activity
+132-->[com.google.android.gms:play-services-base:18.5.0] /home/binasco/.gradle/caches/transforms-4/db3e207e8cdea149435fa399a0395321/transformed/play-services-base-18.5.0/AndroidManifest.xml:5:9-173
+133            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+133-->[com.google.android.gms:play-services-base:18.5.0] /home/binasco/.gradle/caches/transforms-4/db3e207e8cdea149435fa399a0395321/transformed/play-services-base-18.5.0/AndroidManifest.xml:5:19-85
+134            android:exported="false"
+134-->[com.google.android.gms:play-services-base:18.5.0] /home/binasco/.gradle/caches/transforms-4/db3e207e8cdea149435fa399a0395321/transformed/play-services-base-18.5.0/AndroidManifest.xml:5:146-170
+135            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+135-->[com.google.android.gms:play-services-base:18.5.0] /home/binasco/.gradle/caches/transforms-4/db3e207e8cdea149435fa399a0395321/transformed/play-services-base-18.5.0/AndroidManifest.xml:5:86-145
+136
+137        <meta-data
+137-->[com.google.android.gms:play-services-basement:18.4.0] /home/binasco/.gradle/caches/transforms-4/03233ce612030785a644ea85f8aa2e65/transformed/play-services-basement-18.4.0/AndroidManifest.xml:6:9-122
+138            android:name="com.google.android.gms.version"
+138-->[com.google.android.gms:play-services-basement:18.4.0] /home/binasco/.gradle/caches/transforms-4/03233ce612030785a644ea85f8aa2e65/transformed/play-services-basement-18.4.0/AndroidManifest.xml:6:20-65
+139            android:value="@integer/google_play_services_version" />
+139-->[com.google.android.gms:play-services-basement:18.4.0] /home/binasco/.gradle/caches/transforms-4/03233ce612030785a644ea85f8aa2e65/transformed/play-services-basement-18.4.0/AndroidManifest.xml:6:66-119
+140
+141        <receiver
+141-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/binasco/.gradle/caches/transforms-4/4e16cc280eaa0a1f5277c41379c36ea2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
+142            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+142-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/binasco/.gradle/caches/transforms-4/4e16cc280eaa0a1f5277c41379c36ea2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
+143            android:directBootAware="false"
+143-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/binasco/.gradle/caches/transforms-4/4e16cc280eaa0a1f5277c41379c36ea2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
+144            android:enabled="true"
+144-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/binasco/.gradle/caches/transforms-4/4e16cc280eaa0a1f5277c41379c36ea2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
+145            android:exported="true"
+145-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/binasco/.gradle/caches/transforms-4/4e16cc280eaa0a1f5277c41379c36ea2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
+146            android:permission="android.permission.DUMP" >
+146-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/binasco/.gradle/caches/transforms-4/4e16cc280eaa0a1f5277c41379c36ea2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
+147            <intent-filter>
+147-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/binasco/.gradle/caches/transforms-4/4e16cc280eaa0a1f5277c41379c36ea2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
+148                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+148-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/binasco/.gradle/caches/transforms-4/4e16cc280eaa0a1f5277c41379c36ea2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
+148-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/binasco/.gradle/caches/transforms-4/4e16cc280eaa0a1f5277c41379c36ea2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
+149            </intent-filter>
+150            <intent-filter>
+150-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/binasco/.gradle/caches/transforms-4/4e16cc280eaa0a1f5277c41379c36ea2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
+151                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+151-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/binasco/.gradle/caches/transforms-4/4e16cc280eaa0a1f5277c41379c36ea2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
+151-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/binasco/.gradle/caches/transforms-4/4e16cc280eaa0a1f5277c41379c36ea2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
+152            </intent-filter>
+153            <intent-filter>
+153-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/binasco/.gradle/caches/transforms-4/4e16cc280eaa0a1f5277c41379c36ea2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
+154                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+154-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/binasco/.gradle/caches/transforms-4/4e16cc280eaa0a1f5277c41379c36ea2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
+154-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/binasco/.gradle/caches/transforms-4/4e16cc280eaa0a1f5277c41379c36ea2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
+155            </intent-filter>
+156            <intent-filter>
+156-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/binasco/.gradle/caches/transforms-4/4e16cc280eaa0a1f5277c41379c36ea2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
+157                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+157-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/binasco/.gradle/caches/transforms-4/4e16cc280eaa0a1f5277c41379c36ea2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
+157-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/binasco/.gradle/caches/transforms-4/4e16cc280eaa0a1f5277c41379c36ea2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
+158            </intent-filter>
+159        </receiver>
+160
+161        <service
+161-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /home/binasco/.gradle/caches/transforms-4/97e132eedbbc24660e89a492168689f5/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:29:9-35:19
+162            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+162-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /home/binasco/.gradle/caches/transforms-4/97e132eedbbc24660e89a492168689f5/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:30:13-103
+163            android:exported="false" >
+163-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /home/binasco/.gradle/caches/transforms-4/97e132eedbbc24660e89a492168689f5/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:31:13-37
+164            <meta-data
+164-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /home/binasco/.gradle/caches/transforms-4/97e132eedbbc24660e89a492168689f5/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:32:13-34:39
+165                android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
+165-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /home/binasco/.gradle/caches/transforms-4/97e132eedbbc24660e89a492168689f5/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:33:17-94
+166                android:value="cct" />
+166-->[com.google.android.datatransport:transport-backend-cct:2.3.3] /home/binasco/.gradle/caches/transforms-4/97e132eedbbc24660e89a492168689f5/transformed/transport-backend-cct-2.3.3/AndroidManifest.xml:34:17-36
+167        </service>
+168        <service
+168-->[com.google.android.datatransport:transport-runtime:2.2.6] /home/binasco/.gradle/caches/transforms-4/cbdf2690b7bebf66276e3f22bd116a61/transformed/transport-runtime-2.2.6/AndroidManifest.xml:26:9-30:19
+169            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
+169-->[com.google.android.datatransport:transport-runtime:2.2.6] /home/binasco/.gradle/caches/transforms-4/cbdf2690b7bebf66276e3f22bd116a61/transformed/transport-runtime-2.2.6/AndroidManifest.xml:27:13-117
+170            android:exported="false"
+170-->[com.google.android.datatransport:transport-runtime:2.2.6] /home/binasco/.gradle/caches/transforms-4/cbdf2690b7bebf66276e3f22bd116a61/transformed/transport-runtime-2.2.6/AndroidManifest.xml:28:13-37
+171            android:permission="android.permission.BIND_JOB_SERVICE" >
+171-->[com.google.android.datatransport:transport-runtime:2.2.6] /home/binasco/.gradle/caches/transforms-4/cbdf2690b7bebf66276e3f22bd116a61/transformed/transport-runtime-2.2.6/AndroidManifest.xml:29:13-69
+172        </service>
+173
+174        <receiver
+174-->[com.google.android.datatransport:transport-runtime:2.2.6] /home/binasco/.gradle/caches/transforms-4/cbdf2690b7bebf66276e3f22bd116a61/transformed/transport-runtime-2.2.6/AndroidManifest.xml:32:9-34:40
+175            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+175-->[com.google.android.datatransport:transport-runtime:2.2.6] /home/binasco/.gradle/caches/transforms-4/cbdf2690b7bebf66276e3f22bd116a61/transformed/transport-runtime-2.2.6/AndroidManifest.xml:33:13-132
+176            android:exported="false" />
+176-->[com.google.android.datatransport:transport-runtime:2.2.6] /home/binasco/.gradle/caches/transforms-4/cbdf2690b7bebf66276e3f22bd116a61/transformed/transport-runtime-2.2.6/AndroidManifest.xml:34:13-37
+177    </application>
+178
+179</manifest>

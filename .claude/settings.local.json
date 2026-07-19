@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/home/binasco/Android/sdk/platform-tools/adb shell *)",
+      "Bash(/home/binasco/Android/sdk/platform-tools/adb pull *)"
+    ]
+  }
+}
