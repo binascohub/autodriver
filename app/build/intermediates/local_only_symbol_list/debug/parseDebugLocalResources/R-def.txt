@@ -38,6 +38,7 @@ id reject_enabled_switch
 id reject_when_value
 id remove_location_button
 id sign_in_button
+id splash_logo
 id test_overlay_button
 id visible_seconds_label
 id visible_seconds_slider
@@ -45,6 +46,7 @@ layout activity_about
 layout activity_login
 layout activity_main
 layout activity_settings
+layout activity_splash
 layout item_location
 layout overlay_value_card
 mipmap ic_launcher

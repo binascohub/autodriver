@@ -3457,6 +3457,7 @@ id snap
 id snapMargins
 id spacer
 id special_effects_controller_view_tag
+id splash_logo
 id spline
 id split_action_bar
 id spread
@@ -3665,6 +3666,7 @@ layout activity_about
 layout activity_login
 layout activity_main
 layout activity_settings
+layout activity_splash
 layout custom_dialog
 layout design_bottom_navigation_item
 layout design_bottom_sheet_dialog

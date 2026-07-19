@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:2:1-45:12
-INJECTED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:2:1-45:12
-INJECTED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:2:1-45:12
-INJECTED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:2:1-45:12
+ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:2:1-48:12
+INJECTED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:2:1-48:12
+INJECTED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:2:1-48:12
+INJECTED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:2:1-48:12
 MERGED from [com.google.android.material:material:1.12.0] /home/binasco/.gradle/caches/transforms-4/30dbe09adc47a6fa3161e128d9fbb6b2/transformed/material-1.12.0/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.appcompat:appcompat-resources:1.7.0] /home/binasco/.gradle/caches/transforms-4/e97b8fec522e0237fe171c43b96f412b/transformed/appcompat-resources-1.7.0/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.constraintlayout:constraintlayout:2.0.1] /home/binasco/.gradle/caches/transforms-4/3284b1fe802a3f384d6e1862779d2989/transformed/constraintlayout-2.0.1/AndroidManifest.xml:2:1-11:12
@@ -91,8 +91,8 @@ ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:5:
 	android:name
 		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:5:22-75
 application
-ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:7:5-44:19
-INJECTED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:7:5-44:19
+ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:7:5-47:19
+INJECTED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:7:5-47:19
 MERGED from [com.google.android.material:material:1.12.0] /home/binasco/.gradle/caches/transforms-4/30dbe09adc47a6fa3161e128d9fbb6b2/transformed/material-1.12.0/AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.material:material:1.12.0] /home/binasco/.gradle/caches/transforms-4/30dbe09adc47a6fa3161e128d9fbb6b2/transformed/material-1.12.0/AndroidManifest.xml:22:5-20
 MERGED from [androidx.constraintlayout:constraintlayout:2.0.1] /home/binasco/.gradle/caches/transforms-4/3284b1fe802a3f384d6e1862779d2989/transformed/constraintlayout-2.0.1/AndroidManifest.xml:9:5-20
@@ -147,12 +147,12 @@ MERGED from [com.google.android.odml:image:1.0.0-beta1] /home/binasco/.gradle/ca
 		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:8:9-35
 	android:theme
 		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:12:9-68
-activity#com.example.autodriver.MainActivity
+activity#com.example.autodriver.SplashActivity
 ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:13:9-20:20
 	android:exported
 		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:15:13-36
 	android:name
-		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:14:13-41
+		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:14:13-43
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
 ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:16:13-19:29
 action#android.intent.action.MAIN
@@ -163,50 +163,56 @@ category#android.intent.category.LAUNCHER
 ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:18:17-77
 	android:name
 		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:18:27-74
-activity#com.example.autodriver.LoginActivity
+activity#com.example.autodriver.MainActivity
 ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:21:9-23:40
 	android:exported
 		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:23:13-37
 	android:name
-		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:22:13-42
-activity#com.example.autodriver.SettingsActivity
+		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:22:13-41
+activity#com.example.autodriver.LoginActivity
 ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:24:9-26:40
 	android:exported
 		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:26:13-37
 	android:name
-		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:25:13-45
-activity#com.example.autodriver.AboutActivity
+		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:25:13-42
+activity#com.example.autodriver.SettingsActivity
 ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:27:9-29:40
 	android:exported
 		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:29:13-37
 	android:name
-		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:28:13-42
-service#com.example.autodriver.OverlayCardService
+		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:28:13-45
+activity#com.example.autodriver.AboutActivity
 ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:30:9-32:40
 	android:exported
 		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:32:13-37
 	android:name
-		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:31:13-47
-service#com.example.autodriver.RideAccessibilityService
-ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:33:9-43:19
+		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:31:13-42
+service#com.example.autodriver.OverlayCardService
+ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:33:9-35:40
 	android:exported
 		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:35:13-37
+	android:name
+		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:34:13-47
+service#com.example.autodriver.RideAccessibilityService
+ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:36:9-46:19
+	android:exported
+		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:38:13-37
 	android:permission
-		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:36:13-79
+		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:39:13-79
 	android:name
-		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:34:13-53
+		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:37:13-53
 intent-filter#action:name:android.accessibilityservice.AccessibilityService
-ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:37:13-39:29
+ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:40:13-42:29
 action#android.accessibilityservice.AccessibilityService
-ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:38:17-92
+ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:41:17-92
 	android:name
-		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:38:25-89
+		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:41:25-89
 meta-data#android.accessibilityservice
-ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:40:13-42:72
+ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:43:13-45:72
 	android:resource
-		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:42:17-69
+		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:45:17-69
 	android:name
-		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:41:17-60
+		ADDED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml:44:17-60
 uses-sdk
 INJECTED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /home/binasco/projects/autodriver/app/src/main/AndroidManifest.xml
