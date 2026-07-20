@@ -25,11 +25,13 @@ class SettingsActivity : AppCompatActivity() {
 
         visibleSecondsSlider = findViewById(R.id.visible_seconds_slider)
         visibleSecondsLabel = findViewById(R.id.visible_seconds_label)
+        PreferencesManager.load(this)
         visibleSecondsSlider.value = Config.overlayVisibleSeconds.toFloat()
         visibleSecondsLabel.text = "Tempo visível: ${Config.overlayVisibleSeconds}s"
         visibleSecondsSlider.addOnChangeListener { _, value, _ ->
             Config.overlayVisibleSeconds = value.toInt()
             visibleSecondsLabel.text = "Tempo visível: ${value.toInt()}s"
+            PreferencesManager.saveConfig(this)
         }
 
         findViewById<Button>(R.id.test_overlay_button).setOnClickListener {

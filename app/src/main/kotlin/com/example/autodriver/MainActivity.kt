@@ -40,6 +40,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         setContentView(R.layout.activity_main)
+        PreferencesManager.load(this)
 
         findViewById<Button>(R.id.menu_button).setOnClickListener { anchor ->
             val popup = PopupMenu(this, anchor)
@@ -65,6 +66,7 @@ class MainActivity : AppCompatActivity() {
                 Config.locations.add(address)
                 addLocationToList(address)
                 localText.text = null
+                PreferencesManager.saveConfig(this)
             }
         }
 
@@ -73,8 +75,21 @@ class MainActivity : AppCompatActivity() {
         rejectEnabledSwitch = findViewById(R.id.reject_enabled_switch)
         rejectWhenValue = findViewById(R.id.reject_when_value)
 
-        acceptEnabledSwitch.setOnCheckedChangeListener { _, isChecked -> Config.acceptEnabled = isChecked }
-        rejectEnabledSwitch.setOnCheckedChangeListener { _, isChecked -> Config.rejectEnabled = isChecked }
+        acceptEnabledSwitch.setOnCheckedChangeListener { _, isChecked ->
+            Config.acceptEnabled = isChecked
+            PreferencesManager.saveConfig(this)
+        }
+        rejectEnabledSwitch.setOnCheckedChangeListener { _, isChecked ->
+            Config.rejectEnabled = isChecked
+            PreferencesManager.saveConfig(this)
+        }
+
+        acceptEnabledSwitch.isChecked = Config.acceptEnabled
+        rejectEnabledSwitch.isChecked = Config.rejectEnabled
+        acceptWhenValue.setText(Config.acceptWhenValueGreaterThan.takeIf { it != 0f }?.toString() ?: "")
+        rejectWhenValue.setText(Config.rejectWhenValueLessOrEqualTo.takeIf { it != 0f }?.toString() ?: "")
+
+        Config.locations.forEach { addLocationToList(it) }
 
         val thresholdWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -123,6 +138,12 @@ class MainActivity : AppCompatActivity() {
 
         Config.acceptWhenValueGreaterThan = acceptValue
         Config.rejectWhenValueLessOrEqualTo = rejectValue
+        PreferencesManager.saveConfig(this)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        PreferencesManager.saveConfig(this)
     }
 
     private fun addLocationToList(address: String) {
