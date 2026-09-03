@@ -19,11 +19,15 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 class RideAccessibilityService : AccessibilityService() {
 
     private var offerShowing = false
+    private var offerActive = false
     private var missedOfferChecks = 0
     private var lastScreenshotAt = 0L
     private var lastAutoRejectAt = 0L
     private var lastAutoAcceptAt = 0L
     private var ocrInFlight = false
+    private var currentOfferValuePerKm: Float? = null
+    private var currentOfferDestination: String = "Destino desconhecido"
+    private var currentOfferRecorded = false
     private val recognizer by lazy { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
 
     override fun onServiceConnected() {
@@ -32,6 +36,10 @@ class RideAccessibilityService : AccessibilityService() {
         // restart) without MainActivity/SettingsActivity ever running first, so
         // Config must be loaded here too or it stays at default values.
         PreferencesManager.load(this)
+
+        if (Config.showHistoryOverlay) {
+            startService(Intent(this, HistoryOverlayService::class.java))
+        }
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -109,22 +117,37 @@ class RideAccessibilityService : AccessibilityService() {
         Log.d(TAG, "OCR lines=$texts")
 
         val hasOfferButton = texts.any { text ->
-            OFFER_BUTTON_TEXTS.any { text.trim().equals(it, ignoreCase = true) }
+            OFFER_BUTTON_MARKERS.any { marker -> text.contains(marker, ignoreCase = true) }
         }
         if (!hasOfferButton) {
             // A single OCR pass occasionally misreads the button text (e.g.
             // "Acaitar") even while the offer is still on screen, so the card
             // is only closed after a few consecutive misses, not on the first one.
             missedOfferChecks++
-            if (offerShowing && missedOfferChecks >= OFFER_MISS_TOLERANCE) {
+            if (offerActive && missedOfferChecks >= OFFER_MISS_TOLERANCE) {
                 Log.d(TAG, "botão de oferta sumiu, fechando card")
-                stopService(Intent(this, OverlayCardService::class.java))
-                offerShowing = false
+                if (offerShowing) {
+                    stopService(Intent(this, OverlayCardService::class.java))
+                    offerShowing = false
+                }
+                if (!currentOfferRecorded) {
+                    recordHistory(TripOutcome.NO_ACTION)
+                }
+                offerActive = false
                 missedOfferChecks = 0
             }
             return
         }
         missedOfferChecks = 0
+
+        if (!offerActive) {
+            offerActive = true
+            currentOfferRecorded = false
+        }
+        texts.firstNotNullOfOrNull { text -> VALUE_PER_KM_REGEX.find(text)?.groupValues?.get(1) }
+            ?.replace(",", ".")?.toFloatOrNull()
+            ?.let { currentOfferValuePerKm = it }
+        extractDestination(texts)?.let { currentOfferDestination = it }
 
         // TEMPORARY: dump the exact analyzed frame so the close-button tap
         // coordinates can be calibrated against a real screenshot.
@@ -141,7 +164,7 @@ class RideAccessibilityService : AccessibilityService() {
         // sensitive buttons when another window is present on screen at all
         // (View.setFilterTouchesWhenObscured), so our card could be the very
         // thing preventing the tap from registering.
-        val autoRejected = maybeAutoReject(texts, lines, cropTopOffsetPx)
+        val autoRejected = maybeAutoReject(texts)
         val autoAccepted = !autoRejected && maybeAutoAccept(texts)
         if (!autoRejected && !autoAccepted) {
             handleOfferTexts(texts)
@@ -176,9 +199,13 @@ class RideAccessibilityService : AccessibilityService() {
 
     /** Returns true whenever this offer should be auto-rejected, regardless of
      * whether the tap actually fired this pass (throttled) — the overlay
-     * should stay suppressed on every pass while the decision holds. */
-    private fun maybeAutoReject(texts: List<String>, lines: List<Text.Line>, cropTopOffsetPx: Int): Boolean {
+     * should stay suppressed on every pass while the decision holds. Requires
+     * the close-button position to be calibrated via Settings > "Capturar
+     * posição do X" — there is no geometry-based guess, since a guessed tap
+     * risks landing on the wrong control entirely. */
+    private fun maybeAutoReject(texts: List<String>): Boolean {
         if (!Config.rejectEnabled) return false
+        if (Config.closeButtonX < 0f || Config.closeButtonY < 0f) return false
 
         val valuePerKm = texts.firstNotNullOfOrNull { text ->
             VALUE_PER_KM_REGEX.find(text)?.groupValues?.get(1)
@@ -187,46 +214,16 @@ class RideAccessibilityService : AccessibilityService() {
 
         val now = System.currentTimeMillis()
         if (now - lastAutoRejectAt >= AUTO_ACTION_THROTTLE_MS) {
-            val position = closeButtonPosition(lines, cropTopOffsetPx)
-            if (position != null) {
-                lastAutoRejectAt = now
-                Log.d(TAG, "Valor/km ($valuePerKm) abaixo do limite de recusa, recusando automaticamente em $position")
-                tapAt(position.first, position.second)
-            } else {
-                Log.d(TAG, "Auto-reject: posição do X não calibrada e heurística indisponível")
-            }
+            lastAutoRejectAt = now
+            Log.d(
+                TAG,
+                "Valor/km ($valuePerKm) abaixo do limite de recusa, recusando automaticamente em " +
+                    "(${Config.closeButtonX}, ${Config.closeButtonY})"
+            )
+            tapAt(Config.closeButtonX, Config.closeButtonY)
+            recordHistory(TripOutcome.REJECTED)
         }
         return true
-    }
-
-    /** Prefers the position captured via Settings > "Capturar posição do X";
-     * falls back to a geometry-based guess (fragile — see docs) when it hasn't
-     * been calibrated yet. */
-    private fun closeButtonPosition(lines: List<Text.Line>, cropTopOffsetPx: Int): Pair<Float, Float>? {
-        if (Config.closeButtonX >= 0f && Config.closeButtonY >= 0f) {
-            return Config.closeButtonX to Config.closeButtonY
-        }
-
-        val priceLine = lines.firstOrNull { line ->
-            !line.text.contains("/km", ignoreCase = true) && PRICE_REGEX.containsMatchIn(line.text)
-        } ?: return null
-        val kmLine = lines.firstOrNull { VALUE_PER_KM_REGEX.containsMatchIn(it.text) } ?: return null
-        val priceBounds = priceLine.boundingBox ?: return null
-        val kmBounds = kmLine.boundingBox ?: return null
-
-        // The product name and close button share the row directly above the
-        // price. Random OCR noise from icons on that row (misread as garbage
-        // like "ib") makes "topmost recognized line" an unreliable anchor, so
-        // instead we step up from the price line — which PRICE_REGEX already
-        // confirms is real — by one small-text row height (using the "/km"
-        // line's height as that unit, since it's a similarly small font).
-        val rowHeight = kmBounds.height()
-        val headerRowCenterY = priceBounds.top - rowHeight / 2
-
-        val marginRightPx = (CLOSE_BUTTON_MARGIN_RIGHT_DP * resources.displayMetrics.density).toInt()
-        val tapX = (resources.displayMetrics.widthPixels - marginRightPx).toFloat()
-        val tapY = (headerRowCenterY + cropTopOffsetPx).toFloat()
-        return tapX to tapY
     }
 
     /** Returns true whenever this offer should be auto-accepted (same
@@ -252,9 +249,19 @@ class RideAccessibilityService : AccessibilityService() {
                     "(${Config.acceptButtonX}, ${Config.acceptButtonY})"
             )
             tapAt(Config.acceptButtonX, Config.acceptButtonY)
+            recordHistory(TripOutcome.ACCEPTED)
         }
         return true
     }
+
+    private fun recordHistory(outcome: TripOutcome) {
+        val valuePerKm = currentOfferValuePerKm ?: return
+        TripHistory.add(TripRecord(valuePerKm, currentOfferDestination, outcome))
+        currentOfferRecorded = true
+    }
+
+    private fun extractDestination(texts: List<String>): String? =
+        texts.lastOrNull { ADDRESS_REGEX.containsMatchIn(it.trim()) }?.trim()
 
     private fun tapAt(x: Float, y: Float) {
         val path = Path().apply { moveTo(x, y) }
@@ -273,12 +280,18 @@ class RideAccessibilityService : AccessibilityService() {
         private const val OCR_THROTTLE_MS = 700L
         private const val CROP_TOP_FRACTION = 0.35f
         private const val OFFER_MISS_TOLERANCE = 3
-        private const val AUTO_REJECT_THROTTLE_MS = 1500L
+        private const val AUTO_ACTION_THROTTLE_MS = 1500L
         private const val TAP_DURATION_MS = 50L
-        private const val CLOSE_BUTTON_MARGIN_RIGHT_DP = 56
-        private val OFFER_BUTTON_TEXTS = listOf("Selecionar", "Aceitar")
+        // Substrings robust to common single-character OCR slips on the offer
+        // button label ("Selecionar" -> "Seiecionar", "Aceitar" -> "Acaitar")
+        // while staying specific enough to avoid matching unrelated screen text.
+        private val OFFER_BUTTON_MARKERS = listOf("ecionar", "eitar", "aitar")
         private val PRICE_REGEX = Regex("""R\$\s*(\d+,\d{2})""")
         private val DISTANCE_REGEX = Regex("""(\d+\.\d+)\s*km""")
         private val VALUE_PER_KM_REGEX = Regex("""R\$\s*(\d+,\d{2})\s*/\s*km""")
+        private val ADDRESS_REGEX = Regex(
+            """^(Rua|R\.|Av\.|Avenida|Alameda|Al\.|Rodovia|Rod\.|Estrada|Travessa)\b.*,.*""",
+            RegexOption.IGNORE_CASE
+        )
     }
 }

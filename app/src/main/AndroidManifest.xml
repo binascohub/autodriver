@@ -34,6 +34,9 @@
             android:name=".CoordinateCaptureService"
             android:exported="false" />
         <service
+            android:name=".HistoryOverlayService"
+            android:exported="false" />
+        <service
             android:name=".RideAccessibilityService"
             android:exported="false"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">

@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.slider.Slider
+import com.google.android.material.switchmaterial.SwitchMaterial
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -16,6 +17,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var visibleSecondsLabel: TextView
     private lateinit var accessibilityPermissionStatus: TextView
     private lateinit var accessibilityPermissionButton: Button
+    private lateinit var historyOverlaySwitch: SwitchMaterial
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +54,25 @@ class SettingsActivity : AppCompatActivity() {
         accessibilityPermissionButton = findViewById(R.id.accessibility_permission_button)
         accessibilityPermissionButton.setOnClickListener {
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+        }
+
+        historyOverlaySwitch = findViewById(R.id.history_overlay_switch)
+        historyOverlaySwitch.isChecked = Config.showHistoryOverlay
+        historyOverlaySwitch.setOnCheckedChangeListener { _, isChecked ->
+            Config.showHistoryOverlay = isChecked
+            PreferencesManager.saveConfig(this)
+            if (isChecked) {
+                if (Settings.canDrawOverlays(this)) {
+                    startService(Intent(this, HistoryOverlayService::class.java))
+                } else {
+                    Toast.makeText(this, "Conceda a permissão de sobreposição primeiro", Toast.LENGTH_SHORT).show()
+                    historyOverlaySwitch.isChecked = false
+                    Config.showHistoryOverlay = false
+                    PreferencesManager.saveConfig(this)
+                }
+            } else {
+                stopService(Intent(this, HistoryOverlayService::class.java))
+            }
         }
     }
 

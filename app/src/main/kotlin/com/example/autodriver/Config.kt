@@ -11,4 +11,5 @@ object Config {
     var closeButtonY: Float = -1f
     var acceptButtonX: Float = -1f
     var acceptButtonY: Float = -1f
+    var showHistoryOverlay: Boolean = false
 }

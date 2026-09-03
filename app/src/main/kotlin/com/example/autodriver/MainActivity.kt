@@ -31,6 +31,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var accessibilityPermissionButton: Button
     private lateinit var captureAcceptButton: Button
     private lateinit var captureRejectButton: Button
+    private lateinit var captureAcceptStatus: TextView
+    private lateinit var captureRejectStatus: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,15 +81,19 @@ class MainActivity : AppCompatActivity() {
 
         captureAcceptButton = findViewById(R.id.capture_accept_button)
         captureRejectButton = findViewById(R.id.capture_reject_button)
+        captureAcceptStatus = findViewById(R.id.capture_accept_status)
+        captureRejectStatus = findViewById(R.id.capture_reject_status)
 
         acceptEnabledSwitch.setOnCheckedChangeListener { _, isChecked ->
             Config.acceptEnabled = isChecked
             captureAcceptButton.visibility = if (isChecked) android.view.View.VISIBLE else android.view.View.GONE
+            updateCaptureStatuses()
             PreferencesManager.saveConfig(this)
         }
         rejectEnabledSwitch.setOnCheckedChangeListener { _, isChecked ->
             Config.rejectEnabled = isChecked
             captureRejectButton.visibility = if (isChecked) android.view.View.VISIBLE else android.view.View.GONE
+            updateCaptureStatuses()
             PreferencesManager.saveConfig(this)
         }
 
@@ -98,6 +104,7 @@ class MainActivity : AppCompatActivity() {
         rejectEnabledSwitch.isChecked = Config.rejectEnabled
         captureAcceptButton.visibility = if (Config.acceptEnabled) android.view.View.VISIBLE else android.view.View.GONE
         captureRejectButton.visibility = if (Config.rejectEnabled) android.view.View.VISIBLE else android.view.View.GONE
+        updateCaptureStatuses()
         acceptWhenValue.setText(Config.acceptWhenValueGreaterThan.takeIf { it != 0f }?.toString() ?: "")
         rejectWhenValue.setText(Config.rejectWhenValueLessOrEqualTo.takeIf { it != 0f }?.toString() ?: "")
 
@@ -133,6 +140,10 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         updateOverlayPermissionStatus()
         updateAccessibilityPermissionStatus()
+        // The coordinate capture flow saves into SharedPreferences from a
+        // separate service instance, so reload Config in case one just ran.
+        PreferencesManager.load(this)
+        updateCaptureStatuses()
     }
 
     private fun startCoordinateCapture(target: String) {
@@ -144,6 +155,20 @@ class MainActivity : AppCompatActivity() {
         intent.putExtra(CoordinateCaptureService.EXTRA_TARGET, target)
         startService(intent)
     }
+
+    private fun updateCaptureStatuses() {
+        captureAcceptStatus.text = formatCapturedPosition(Config.acceptButtonX, Config.acceptButtonY)
+        captureAcceptStatus.visibility = if (Config.acceptEnabled) android.view.View.VISIBLE else android.view.View.GONE
+        captureRejectStatus.text = formatCapturedPosition(Config.closeButtonX, Config.closeButtonY)
+        captureRejectStatus.visibility = if (Config.rejectEnabled) android.view.View.VISIBLE else android.view.View.GONE
+    }
+
+    private fun formatCapturedPosition(x: Float, y: Float): String =
+        if (x >= 0f && y >= 0f) {
+            "Posição atual: (${x.toInt()}, ${y.toInt()})"
+        } else {
+            "Nenhuma posição capturada ainda"
+        }
 
     private fun saveThresholdsIfValid() {
         val acceptValue = acceptWhenValue.text?.toString()?.toFloatOrNull() ?: 0f
