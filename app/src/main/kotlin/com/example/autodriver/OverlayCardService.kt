@@ -33,6 +33,7 @@ class OverlayCardService : Service() {
         val rejectThreshold = intent?.getFloatExtra(EXTRA_REJECT_THRESHOLD, 0f) ?: 0f
         val visibleSeconds = intent?.getIntExtra(EXTRA_VISIBLE_SECONDS, 5) ?: 5
         showCard(totalValue, totalKm, acceptThreshold, rejectThreshold, visibleSeconds)
+        activeInstance = this
         return START_NOT_STICKY
     }
 
@@ -93,6 +94,7 @@ class OverlayCardService : Service() {
         autoCloseHandler.removeCallbacks(autoCloseRunnable)
         overlayView?.let { windowManager.removeView(it) }
         overlayView = null
+        if (activeInstance == this) activeInstance = null
     }
 
     companion object {
@@ -101,5 +103,14 @@ class OverlayCardService : Service() {
         const val EXTRA_ACCEPT_THRESHOLD = "extra_accept_threshold"
         const val EXTRA_REJECT_THRESHOLD = "extra_reject_threshold"
         const val EXTRA_VISIBLE_SECONDS = "extra_visible_seconds"
+
+        private var activeInstance: OverlayCardService? = null
+
+        /** Same rationale as [HistoryOverlayService.setHidden]: this card also
+         * shows a "R$ x,xx/km" line that would otherwise get read back by OCR
+         * alongside the real offer card underneath it. */
+        fun setHidden(hidden: Boolean) {
+            activeInstance?.overlayView?.visibility = if (hidden) View.INVISIBLE else View.VISIBLE
+        }
     }
 }

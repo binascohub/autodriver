@@ -3,6 +3,8 @@ package com.example.autodriver
 import android.view.View
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 enum class TripOutcome { ACCEPTED, REJECTED, NO_ACTION }
@@ -10,7 +12,8 @@ enum class TripOutcome { ACCEPTED, REJECTED, NO_ACTION }
 data class TripRecord(
     val valuePerKm: Float,
     val destination: String,
-    val outcome: TripOutcome
+    val outcome: TripOutcome,
+    val timestamp: Long = System.currentTimeMillis()
 )
 
 object TripHistory {
@@ -31,6 +34,8 @@ object TripHistory {
 
 /** Binds a [TripRecord] into a view inflated from `item_history_row.xml`. */
 fun bindTripRecordRow(row: View, record: TripRecord) {
+    row.findViewById<TextView>(R.id.history_time).text =
+        SimpleDateFormat("HH:mm:ss", Locale("pt", "BR")).format(Date(record.timestamp))
     row.findViewById<TextView>(R.id.history_value).text =
         String.format(Locale("pt", "BR"), "R$ %.2f/km", record.valuePerKm)
     row.findViewById<TextView>(R.id.history_destination).text = record.destination

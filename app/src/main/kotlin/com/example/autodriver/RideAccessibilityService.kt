@@ -6,8 +6,11 @@ import android.accessibilityservice.AccessibilityService.TakeScreenshotCallback
 import android.accessibilityservice.GestureDescription
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Path
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.Display
 import android.view.accessibility.AccessibilityEvent
@@ -29,6 +32,28 @@ class RideAccessibilityService : AccessibilityService() {
     private var currentOfferDestination: String = "Destino desconhecido"
     private var pendingOutcome: TripOutcome? = null
     private val recognizer by lazy { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
+    private val handler = Handler(Looper.getMainLooper())
+    private val closeButtonTemplate: Bitmap? by lazy {
+        try {
+            assets.open(CLOSE_BUTTON_TEMPLATE_ASSET).use { BitmapFactory.decodeStream(it) }
+        } catch (e: Exception) {
+            Log.d(TAG, "template do botão X não encontrado: ${e.message}")
+            null
+        }
+    }
+
+    /** Runs while an offer is on screen, re-checking on a timer instead of
+     * waiting only for new accessibility events from Uber. If the driver
+     * closes the offer and immediately leaves the app, no more events from
+     * `TARGET_PACKAGE` arrive and the card-gone detection would otherwise
+     * never fire, silently dropping that trip's history record. */
+    private val offerWatchdog = object : Runnable {
+        override fun run() {
+            if (!offerActive) return
+            maybeRequestOcr()
+            handler.postDelayed(this, OCR_THROTTLE_MS)
+        }
+    }
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -40,6 +65,11 @@ class RideAccessibilityService : AccessibilityService() {
         if (Config.showHistoryOverlay) {
             startService(Intent(this, HistoryOverlayService::class.java))
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeCallbacksAndMessages(null)
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -54,8 +84,16 @@ class RideAccessibilityService : AccessibilityService() {
 
     private fun maybeRequestOcr() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
-        if (ocrInFlight) return
         val now = System.currentTimeMillis()
+        if (ocrInFlight) {
+            // takeScreenshot's callback can apparently get lost (observed after
+            // a multi-stroke sweep gesture), leaving this flag stuck forever
+            // and silently freezing all detection — self-heal instead of
+            // requiring a manual service restart.
+            if (now - lastScreenshotAt < OCR_STUCK_TIMEOUT_MS) return
+            Log.d(TAG, "OCR parecia travada, destravando")
+            ocrInFlight = false
+        }
         if (now - lastScreenshotAt < OCR_THROTTLE_MS) return
         lastScreenshotAt = now
         ocrInFlight = true
@@ -69,10 +107,18 @@ class RideAccessibilityService : AccessibilityService() {
     }
 
     private fun requestScreenshot() {
+        // Our own overlays (history card, value/km card) can render inside the
+        // analyzed region and get read back by OCR as if they were part of
+        // the current offer, so they're hidden for the brief instant the
+        // screenshot is captured and restored right after.
+        HistoryOverlayService.setHidden(true)
+        OverlayCardService.setHidden(true)
         takeScreenshot(Display.DEFAULT_DISPLAY, mainExecutor, object : TakeScreenshotCallback {
             override fun onSuccess(result: ScreenshotResult) {
                 val hardwareBitmap = Bitmap.wrapHardwareBuffer(result.hardwareBuffer, result.colorSpace)
                 result.hardwareBuffer.close()
+                HistoryOverlayService.setHidden(false)
+                OverlayCardService.setHidden(false)
                 if (hardwareBitmap == null) {
                     ocrInFlight = false
                     return
@@ -105,6 +151,8 @@ class RideAccessibilityService : AccessibilityService() {
             }
 
             override fun onFailure(errorCode: Int) {
+                HistoryOverlayService.setHidden(false)
+                OverlayCardService.setHidden(false)
                 ocrInFlight = false
                 Log.d(TAG, "takeScreenshot falhou: $errorCode")
             }
@@ -144,6 +192,7 @@ class RideAccessibilityService : AccessibilityService() {
         if (!offerActive) {
             offerActive = true
             pendingOutcome = null
+            handler.postDelayed(offerWatchdog, OCR_THROTTLE_MS)
         }
         texts.firstNotNullOfOrNull { text -> VALUE_PER_KM_REGEX.find(text)?.groupValues?.get(1) }
             ?.replace(",", ".")?.toFloatOrNull()
@@ -165,7 +214,7 @@ class RideAccessibilityService : AccessibilityService() {
         // sensitive buttons when another window is present on screen at all
         // (View.setFilterTouchesWhenObscured), so our card could be the very
         // thing preventing the tap from registering.
-        val autoRejected = maybeAutoReject(texts)
+        val autoRejected = maybeAutoReject(texts, debugBitmap, cropTopOffsetPx)
         val autoAccepted = !autoRejected && maybeAutoAccept(texts)
         if (!autoRejected && !autoAccepted) {
             handleOfferTexts(texts)
@@ -205,9 +254,10 @@ class RideAccessibilityService : AccessibilityService() {
      * should stay suppressed on every pass while the decision holds. The close
      * button's X position is stable across offers, but its Y position isn't
      * (taller cards — more stops, longer addresses — push it around), so
-     * instead of a single point this sweeps a column of taps from the bottom
-     * of the observed range to the top until the card closes. */
-    private fun maybeAutoReject(texts: List<String>): Boolean {
+     * instead of a single point this sweeps a column of taps starting at the
+     * position captured via Settings > "Capturar posição do X" and moving
+     * upward until the card closes. */
+    private fun maybeAutoReject(texts: List<String>, cardBitmap: Bitmap, cropTopOffsetPx: Int): Boolean {
         if (!Config.rejectEnabled) return false
 
         val valuePerKm = texts.firstNotNullOfOrNull { text ->
@@ -218,11 +268,39 @@ class RideAccessibilityService : AccessibilityService() {
         val now = System.currentTimeMillis()
         if (now - lastAutoRejectAt >= AUTO_ACTION_THROTTLE_MS) {
             lastAutoRejectAt = now
-            Log.d(TAG, "Valor/km ($valuePerKm) abaixo do limite de recusa, varrendo X para recusar")
-            sweepTapCloseButton()
+            closeCurrentOffer(valuePerKm, cardBitmap, cropTopOffsetPx)
         }
         pendingOutcome = TripOutcome.REJECTED
         return true
+    }
+
+    /** Locates the close button by matching [closeButtonTemplate] against the
+     * current card, since its Y position shifts with card height (more
+     * stops, longer addresses) while looking visually identical everywhere
+     * it appears. Falls back to the calibrated-position sweep when no
+     * template is bundled or no confident match is found. */
+    private fun closeCurrentOffer(valuePerKm: Float, cardBitmap: Bitmap, cropTopOffsetPx: Int) {
+        val match = closeButtonTemplate?.let { template ->
+            ButtonImageMatcher.findCloseButton(cardBitmap, template)
+        }
+        if (match != null) {
+            val screenX = match.x
+            val screenY = match.y + cropTopOffsetPx
+            Log.d(TAG, "Valor/km ($valuePerKm) abaixo do limite, fechando por imagem em ($screenX, $screenY)")
+            tapAt(screenX, screenY)
+            return
+        }
+
+        if (Config.closeButtonX < 0f || Config.closeButtonY < 0f) {
+            Log.d(TAG, "Valor/km ($valuePerKm) abaixo do limite, mas nenhum método de fechar está disponível")
+            return
+        }
+        Log.d(
+            TAG,
+            "Valor/km ($valuePerKm) abaixo do limite, botão não encontrado por imagem, varrendo a partir de " +
+                "(${Config.closeButtonX}, ${Config.closeButtonY})"
+        )
+        sweepTapCloseButton(Config.closeButtonX, Config.closeButtonY)
     }
 
     /** Returns true whenever this offer should be auto-accepted (same
@@ -276,15 +354,16 @@ class RideAccessibilityService : AccessibilityService() {
     }
 
     /** Fires a column of short taps at a fixed X, spaced out over time within
-     * a single gesture, sweeping from the bottom of the observed close-button
-     * range up to the top — since the Y position varies with card height but
-     * the X position doesn't. */
-    private fun sweepTapCloseButton() {
+     * a single gesture, starting at (startX, startY) — the captured close-
+     * button position — and sweeping upward, since the Y position varies with
+     * card height but the X position doesn't. */
+    private fun sweepTapCloseButton(startX: Float, startY: Float) {
         val builder = GestureDescription.Builder()
         var startTime = 0L
-        var y = SWEEP_Y_BOTTOM
-        while (y >= SWEEP_Y_TOP) {
-            val path = Path().apply { moveTo(SWEEP_X, y.toFloat()) }
+        var y = startY
+        val topY = startY - SWEEP_SPAN_PX
+        while (y >= topY) {
+            val path = Path().apply { moveTo(startX, y) }
             builder.addStroke(GestureDescription.StrokeDescription(path, startTime, TAP_DURATION_MS))
             startTime += SWEEP_STEP_DELAY_MS
             y -= SWEEP_STEP_PX
@@ -299,24 +378,30 @@ class RideAccessibilityService : AccessibilityService() {
         private const val TAG = "RideAccessibility"
         private const val TARGET_PACKAGE = "com.ubercab.driver"
         private const val OCR_THROTTLE_MS = 700L
+        private const val OCR_STUCK_TIMEOUT_MS = 5000L
         private const val CROP_TOP_FRACTION = 0.35f
         private const val OFFER_MISS_TOLERANCE = 3
         private const val AUTO_ACTION_THROTTLE_MS = 1500L
         private const val TAP_DURATION_MS = 50L
         // The close button's X is stable across offer cards; its Y drifts with
-        // card height, so auto-reject sweeps this column instead of one point.
-        private const val SWEEP_X = 913f
-        private const val SWEEP_Y_BOTTOM = 1750
-        private const val SWEEP_Y_TOP = 1050
-        private const val SWEEP_STEP_PX = 100
+        // card height, so auto-reject sweeps upward from the captured position
+        // instead of tapping just one point.
+        private const val SWEEP_SPAN_PX = 700f
+        private const val SWEEP_STEP_PX = 100f
         private const val SWEEP_STEP_DELAY_MS = 150L
+        private const val CLOSE_BUTTON_TEMPLATE_ASSET = "close_button_template.png"
         // Substrings robust to common single-character OCR slips on the offer
         // button label ("Selecionar" -> "Seiecionar", "Aceitar" -> "Acaitar")
         // while staying specific enough to avoid matching unrelated screen text.
-        private val OFFER_BUTTON_MARKERS = listOf("ecionar", "eitar", "aitar")
-        private val PRICE_REGEX = Regex("""R\$\s*(\d+,\d{2})""")
+        // Covers both the Portuguese ("Selecionar", "Aceitar") and English
+        // ("Select", "Accept") Uber Driver UI, since the app's language can
+        // change on its own (device/account locale) independently of this app.
+        private val OFFER_BUTTON_MARKERS = listOf("ecionar", "eitar", "aitar", "elect", "ccept", "atch")
+        // Decimal separator varies with the app's language too: "R$ 18,65"
+        // (PT) vs "R$18.65" (EN).
+        private val PRICE_REGEX = Regex("""R\$\s*(\d+[.,]\d{2})""")
         private val DISTANCE_REGEX = Regex("""(\d+\.\d+)\s*km""")
-        private val VALUE_PER_KM_REGEX = Regex("""R\$\s*(\d+,\d{2})\s*/\s*km""")
+        private val VALUE_PER_KM_REGEX = Regex("""R\$\s*(\d+[.,]\d{2})\s*/\s*km""")
         private val ADDRESS_REGEX = Regex(
             """^(Rua|R\.|Av\.|Avenida|Alameda|Al\.|Rodovia|Rod\.|Estrada|Travessa)\b.*,.*""",
             RegexOption.IGNORE_CASE

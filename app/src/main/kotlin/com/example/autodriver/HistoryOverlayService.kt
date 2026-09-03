@@ -24,6 +24,7 @@ class HistoryOverlayService : Service() {
         showOverlay()
         TripHistory.onChanged = { refreshRows() }
         refreshRows()
+        activeInstance = this
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
@@ -72,5 +73,18 @@ class HistoryOverlayService : Service() {
         TripHistory.onChanged = null
         overlayView?.let { windowManager.removeView(it) }
         overlayView = null
+        if (activeInstance == this) activeInstance = null
+    }
+
+    companion object {
+        private var activeInstance: HistoryOverlayService? = null
+
+        /** Hides this overlay for the brief window a screenshot is taken for
+         * OCR — otherwise its own "R$ x,xx/km" rows from past offers get read
+         * back as if they were the current one, since they render above the
+         * offer card and are picked up before it in reading order. */
+        fun setHidden(hidden: Boolean) {
+            activeInstance?.overlayView?.visibility = if (hidden) View.INVISIBLE else View.VISIBLE
+        }
     }
 }
