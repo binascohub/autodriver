@@ -29,6 +29,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var overlayPermissionButton: Button
     private lateinit var accessibilityPermissionStatus: TextView
     private lateinit var accessibilityPermissionButton: Button
+    private lateinit var captureAcceptButton: Button
+    private lateinit var captureRejectButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,17 +77,27 @@ class MainActivity : AppCompatActivity() {
         rejectEnabledSwitch = findViewById(R.id.reject_enabled_switch)
         rejectWhenValue = findViewById(R.id.reject_when_value)
 
+        captureAcceptButton = findViewById(R.id.capture_accept_button)
+        captureRejectButton = findViewById(R.id.capture_reject_button)
+
         acceptEnabledSwitch.setOnCheckedChangeListener { _, isChecked ->
             Config.acceptEnabled = isChecked
+            captureAcceptButton.visibility = if (isChecked) android.view.View.VISIBLE else android.view.View.GONE
             PreferencesManager.saveConfig(this)
         }
         rejectEnabledSwitch.setOnCheckedChangeListener { _, isChecked ->
             Config.rejectEnabled = isChecked
+            captureRejectButton.visibility = if (isChecked) android.view.View.VISIBLE else android.view.View.GONE
             PreferencesManager.saveConfig(this)
         }
 
+        captureAcceptButton.setOnClickListener { startCoordinateCapture(CoordinateCaptureService.TARGET_ACCEPT) }
+        captureRejectButton.setOnClickListener { startCoordinateCapture(CoordinateCaptureService.TARGET_REJECT) }
+
         acceptEnabledSwitch.isChecked = Config.acceptEnabled
         rejectEnabledSwitch.isChecked = Config.rejectEnabled
+        captureAcceptButton.visibility = if (Config.acceptEnabled) android.view.View.VISIBLE else android.view.View.GONE
+        captureRejectButton.visibility = if (Config.rejectEnabled) android.view.View.VISIBLE else android.view.View.GONE
         acceptWhenValue.setText(Config.acceptWhenValueGreaterThan.takeIf { it != 0f }?.toString() ?: "")
         rejectWhenValue.setText(Config.rejectWhenValueLessOrEqualTo.takeIf { it != 0f }?.toString() ?: "")
 
@@ -121,6 +133,16 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         updateOverlayPermissionStatus()
         updateAccessibilityPermissionStatus()
+    }
+
+    private fun startCoordinateCapture(target: String) {
+        if (!Settings.canDrawOverlays(this)) {
+            Toast.makeText(this, "Conceda a permissão de sobreposição primeiro", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val intent = Intent(this, CoordinateCaptureService::class.java)
+        intent.putExtra(CoordinateCaptureService.EXTRA_TARGET, target)
+        startService(intent)
     }
 
     private fun saveThresholdsIfValid() {

@@ -7,4 +7,8 @@ object Config {
     var rejectEnabled: Boolean = true
     var rejectWhenValueLessOrEqualTo: Float = 0f
     var overlayVisibleSeconds: Int = 5
+    var closeButtonX: Float = -1f
+    var closeButtonY: Float = -1f
+    var acceptButtonX: Float = -1f
+    var acceptButtonY: Float = -1f
 }

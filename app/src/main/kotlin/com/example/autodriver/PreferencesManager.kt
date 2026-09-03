@@ -10,6 +10,10 @@ object PreferencesManager {
     private const val KEY_REJECT_ENABLED = "reject_enabled"
     private const val KEY_REJECT_THRESHOLD = "reject_threshold"
     private const val KEY_OVERLAY_VISIBLE_SECONDS = "overlay_visible_seconds"
+    private const val KEY_CLOSE_BUTTON_X = "close_button_x"
+    private const val KEY_CLOSE_BUTTON_Y = "close_button_y"
+    private const val KEY_ACCEPT_BUTTON_X = "accept_button_x"
+    private const val KEY_ACCEPT_BUTTON_Y = "accept_button_y"
     private const val LOCATION_DELIMITER = "\u0000"
 
     fun load(context: Context) {
@@ -25,6 +29,10 @@ object PreferencesManager {
         Config.acceptWhenValueGreaterThan = prefs.getFloat(KEY_ACCEPT_THRESHOLD, Config.acceptWhenValueGreaterThan)
         Config.rejectWhenValueLessOrEqualTo = prefs.getFloat(KEY_REJECT_THRESHOLD, Config.rejectWhenValueLessOrEqualTo)
         Config.overlayVisibleSeconds = prefs.getInt(KEY_OVERLAY_VISIBLE_SECONDS, Config.overlayVisibleSeconds)
+        Config.closeButtonX = prefs.getFloat(KEY_CLOSE_BUTTON_X, Config.closeButtonX)
+        Config.closeButtonY = prefs.getFloat(KEY_CLOSE_BUTTON_Y, Config.closeButtonY)
+        Config.acceptButtonX = prefs.getFloat(KEY_ACCEPT_BUTTON_X, Config.acceptButtonX)
+        Config.acceptButtonY = prefs.getFloat(KEY_ACCEPT_BUTTON_Y, Config.acceptButtonY)
     }
 
     fun saveConfig(context: Context) {
@@ -36,6 +44,10 @@ object PreferencesManager {
             .putFloat(KEY_ACCEPT_THRESHOLD, Config.acceptWhenValueGreaterThan)
             .putFloat(KEY_REJECT_THRESHOLD, Config.rejectWhenValueLessOrEqualTo)
             .putInt(KEY_OVERLAY_VISIBLE_SECONDS, Config.overlayVisibleSeconds)
+            .putFloat(KEY_CLOSE_BUTTON_X, Config.closeButtonX)
+            .putFloat(KEY_CLOSE_BUTTON_Y, Config.closeButtonY)
+            .putFloat(KEY_ACCEPT_BUTTON_X, Config.acceptButtonX)
+            .putFloat(KEY_ACCEPT_BUTTON_Y, Config.acceptButtonY)
             .apply()
     }
 }
