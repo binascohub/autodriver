@@ -31,11 +31,12 @@ RideAccessibilityService ──reads Config thresholds──► starts ──►
 
 1. Uber Driver posts an `AccessibilityEvent` for its package.
 2. `RideAccessibilityService.onAccessibilityEvent` walks the active window's `AccessibilityNodeInfo` tree (`collectTexts`) to gather all visible text/content-descriptions.
-3. If no offer indicator is found in the accessibility tree, the service falls back to a screenshot + ML Kit text recognition pass (`maybeRequestOcr`) — see [[Ride Offer Detection#OCR fallback]].
-4. `handleOfferTexts` looks for an offer button label (`Selecionar`/`Aceitar`), then extracts total price (`PRICE_REGEX`) and total distance (`DISTANCE_REGEX`).
+3. If an offer button is present, the service also runs a screenshot + ML Kit text recognition pass on the bottom half of the screen (`maybeRequestOcr`, throttled to ~700ms) — see [[Ride Offer Detection#OCR fallback]]. The offer card's price/distance/value-per-km are not exposed as accessible text, so this OCR pass is the reliable source for that data, not just a fallback.
+4. `handleOfferTexts` extracts total price (`PRICE_REGEX`) and total distance (`DISTANCE_REGEX`) from whichever text source (tree or OCR) is passed to it, looking for an offer button label (`Selecionar`/`Aceitar`) at the caller level.
 5. On a valid match, it starts `OverlayCardService` with the parsed value, distance, and the current thresholds/duration read from `Config`.
 6. `OverlayCardService` computes value/km, colors the card according to [[Accept-Reject Thresholds]], adds it to the window, and auto-dismisses it after `overlayVisibleSeconds`.
-7. If the offer button disappears before a new offer is parsed, the service proactively stops `OverlayCardService`.
+7. Independently, the OCR pass also feeds [[Auto-Reject Low Offers]]: if the on-screen value/km is at or below the reject threshold, the service simulates a tap on the card's close button via `dispatchGesture`.
+8. If the offer button disappears before a new offer is parsed, the service proactively stops `OverlayCardService`.
 
 ## Persistence model
 
@@ -53,3 +54,4 @@ There are two independent `SharedPreferences` files:
 - No dependency injection, no ViewModel — Activities own both UI and persistence calls directly.
 - `Config` being a mutable global singleton means state can drift if multiple screens are open; acceptable at the current scale but worth flagging before adding more screens.
 - `LoginActivity`/`SessionManager` exist but `MainActivity` bypasses the sign-in check (`if (false && !SessionManager.isSignedIn(this))`), so the Google sign-in flow is currently dead code from the user's perspective.
+- [[Auto-Reject Low Offers]] locates the close button by position heuristics on OCR output rather than an accessible node reference, since the button has no accessible node to click — this is inherently more fragile to layout changes than a normal accessibility click.

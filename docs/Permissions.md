@@ -19,7 +19,7 @@ Autodriver depends on two runtime permissions that Android does not grant throug
 ## Accessibility service permission
 
 - `RideAccessibilityService` is declared with `android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"` and configured via [accessibility_service_config.xml](../app/src/main/res/xml/accessibility_service_config.xml).
-- Required for [[Ride Offer Detection]] to receive `AccessibilityEvent`s from `com.ubercab.driver` and to call `takeScreenshot` for the OCR fallback.
+- Required for [[Ride Offer Detection]] to receive `AccessibilityEvent`s from `com.ubercab.driver`, to call `takeScreenshot` for the OCR pass, and (via `android:canPerformGestures="true"`) to call `dispatchGesture` for [[Auto-Reject Low Offers]]'s simulated tap.
 - The user enables it manually from system Accessibility settings (`Settings.ACTION_ACCESSIBILITY_SETTINGS`), since it can't be requested with a runtime permission dialog.
 - Both `MainActivity` and `SettingsActivity` check it the same way: read `Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES` and look for `"$packageName/${RideAccessibilityService::class.java.name}"`.
 - Same **"Concedida"/"Não concedida"** status pattern as the overlay permission.

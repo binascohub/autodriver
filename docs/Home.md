@@ -16,9 +16,10 @@ Autodriver is a Kotlin/AndroidX app that watches ride offers inside the Uber Dri
 
 ## Features
 
-- [[Ride Offer Detection]]
+- [[Ride Offer Detection]] — now also covers why the OCR pass runs on every offer, not just as a fallback
 - [[Value Per KM Overlay]]
 - [[Accept-Reject Thresholds]]
+- [[Auto-Reject Low Offers]] — new: automatically declines offers below the reject threshold
 - [[Location Management]]
 - [[Settings Screen]]
 - [[Google Sign-In (Bypassed)]]
