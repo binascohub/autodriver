@@ -4,11 +4,11 @@ tags: [feature, autodriver]
 
 # Location Management
 
-Back to [[Home]] · Related: [[Config Reference]]
+Back to [[Home]] · Related: [[Config Reference]], [[Auto-Reject Low Offers]]
 
 **File:** [MainActivity.kt](../../app/src/main/kotlin/com/example/autodriver/MainActivity.kt) · Layouts: [activity_main.xml](../../app/src/main/res/layout/activity_main.xml), [item_location.xml](../../app/src/main/res/layout/item_location.xml)
 
-A simple list of free-text addresses/locations the user can maintain from the main screen, backed by `Config.locations`.
+A simple list of free-text addresses/locations the user can maintain from the main screen (in the "Recusar" card), backed by `Config.locations`. Any offer whose OCR-read destination matches one of these entries is auto-rejected — see [[Auto-Reject Low Offers]].
 
 ## Behavior
 
@@ -18,4 +18,4 @@ A simple list of free-text addresses/locations the user can maintain from the ma
 
 ## Current scope
 
-This is presentation-only bookkeeping today — `Config.locations` is populated and persisted, but no other component in the app (offer detection, overlay) currently reads or filters based on it. It's reserved for future functionality (e.g. only showing the overlay near specific pickup areas).
+`RideAccessibilityService.isDestinationBlocked` reads `Config.locations` on every OCR pass, matching each entry against the offer's extracted destination with a case-insensitive substring check. A match forces an auto-reject regardless of the offer's value/km — see [[Auto-Reject Low Offers]] for how this interacts with the accept threshold. The overlay itself still doesn't filter or color based on this list.

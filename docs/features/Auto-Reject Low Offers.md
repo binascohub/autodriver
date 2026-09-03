@@ -4,11 +4,18 @@ tags: [feature, autodriver]
 
 # Auto-Reject Low Offers
 
-Back to [[Home]] · Related: [[Ride Offer Detection]], [[Accept-Reject Thresholds]], [[Permissions]], [[Config Reference]]
+Back to [[Home]] · Related: [[Ride Offer Detection]], [[Accept-Reject Thresholds]], [[Location Management]], [[Permissions]], [[Config Reference]]
 
 **File:** [RideAccessibilityService.kt](../../app/src/main/kotlin/com/example/autodriver/RideAccessibilityService.kt)
 
-Automatically declines a ride offer by tapping its close ("X") button when the value/km shown by Uber on the offer card is at or below the configured reject threshold — no driver interaction needed.
+Automatically declines a ride offer by tapping its close ("X") button when either of two conditions holds — no driver interaction needed:
+
+- the value/km shown by Uber on the offer card is at or below the configured reject threshold, or
+- the offer's destination matches an entry in the [[Location Management|reject list]].
+
+## Priority over auto-accept
+
+`onOcrResult` only evaluates `maybeAutoAccept` when `maybeAutoReject` returns `false` for that pass. Because a blocked destination makes `maybeAutoReject` return `true` on its own — independent of the value/km reading — a destination on the reject list always wins even when the offer's value/km is high enough to otherwise qualify for auto-accept. There is no configuration to invert this priority.
 
 ## Why OCR, not the accessibility tree
 
@@ -19,10 +26,11 @@ The offer card (product name, total price, the "R$X,XX/km aprox." line, distance
 
 ## How the threshold check works
 
-1. `maybeAutoReject(lines, cropTopOffsetPx)` runs on every successful OCR pass while an offer is showing.
+1. `maybeAutoReject(texts, cardBitmap, cropTopOffsetPx)` runs on every successful OCR pass while an offer is showing.
 2. It's a no-op unless `Config.rejectEnabled` is `true`.
 3. It reads the value/km directly off the screen using `VALUE_PER_KM_REGEX` = `R\$\s*(\d+,\d{2})\s*/\s*km`, matching the "R$1,53/km" text Uber already renders on the card — this is the same number the driver sees, not a recomputed value.
-4. If that value is greater than `Config.rejectWhenValueLessOrEqualTo`, nothing happens (offer is left for the driver, and [[Value Per KM Overlay]] still shows/colors normally via the existing `handleOfferTexts` call).
+4. It also checks `isDestinationBlocked(currentOfferDestination)` — a case-insensitive substring match against every entry in `Config.locations`.
+5. The offer is auto-rejected if *either* the value/km is at or below `Config.rejectWhenValueLessOrEqualTo` *or* the destination is blocked. If neither holds, nothing happens (offer is left for the driver, and [[Value Per KM Overlay]] still shows/colors normally via the existing `handleOfferTexts` call).
 
 ## How the tap location is computed
 

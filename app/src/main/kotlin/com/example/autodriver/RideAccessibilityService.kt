@@ -252,26 +252,45 @@ class RideAccessibilityService : AccessibilityService() {
 
     /** Returns true whenever this offer should be auto-rejected, regardless of
      * whether the tap actually fired this pass (throttled) — the overlay
-     * should stay suppressed on every pass while the decision holds. The close
-     * button's X position is stable across offers, but its Y position isn't
-     * (taller cards — more stops, longer addresses — push it around), so
-     * instead of a single point this sweeps a column of taps starting at the
-     * position captured via Settings > "Capturar posição do X" and moving
-     * upward until the card closes. */
+     * should stay suppressed on every pass while the decision holds. A
+     * destination on the reject list takes priority over the accept
+     * threshold: it forces a reject even when the value/km would otherwise
+     * qualify for auto-accept, since [onOcrResult] only evaluates
+     * [maybeAutoAccept] when this returns false. The close button's X
+     * position is stable across offers, but its Y position isn't (taller
+     * cards — more stops, longer addresses — push it around), so instead of
+     * a single point this sweeps a column of taps starting at the position
+     * captured via Settings > "Capturar posição do X" and moving upward
+     * until the card closes. */
     private fun maybeAutoReject(texts: List<String>, cardBitmap: Bitmap, cropTopOffsetPx: Int): Boolean {
         if (!Config.rejectEnabled) return false
 
-        val valuePerKm = extractValuePerKm(texts) ?: return false
-        if (valuePerKm > Config.rejectWhenValueLessOrEqualTo) return false
+        val valuePerKm = extractValuePerKm(texts)
+        val destinationBlocked = isDestinationBlocked(currentOfferDestination)
+        val belowThreshold = valuePerKm != null && valuePerKm <= Config.rejectWhenValueLessOrEqualTo
+        if (!destinationBlocked && !belowThreshold) return false
+
+        val reason = if (destinationBlocked) {
+            "destino \"$currentOfferDestination\" está na lista de recusar"
+        } else {
+            "valor/km ($valuePerKm) abaixo do limite"
+        }
 
         val now = System.currentTimeMillis()
         if (now - lastAutoRejectAt >= AUTO_ACTION_THROTTLE_MS) {
             lastAutoRejectAt = now
-            closeCurrentOffer(valuePerKm, cardBitmap, cropTopOffsetPx)
+            closeCurrentOffer(reason, cardBitmap, cropTopOffsetPx)
         }
         pendingOutcome = TripOutcome.REJECTED
         return true
     }
+
+    /** True when [destination] matches an address the driver added to the
+     * reject list (Settings > "Recusar" card) — a plain case-insensitive
+     * substring match, since entries are free-typed street/neighborhood
+     * names rather than exact addresses. */
+    private fun isDestinationBlocked(destination: String): Boolean =
+        Config.locations.any { blocked -> destination.contains(blocked, ignoreCase = true) }
 
     /** Closes the current offer by locating the close button's on-screen
      * position with [ButtonImageMatcher] against [closeButtonTemplate] and
@@ -280,25 +299,25 @@ class RideAccessibilityService : AccessibilityService() {
      * everywhere it appears, which is what template matching keys off of.
      * Falls back to the calibrated-position sweep when no template is
      * bundled or no confident match is found this pass. */
-    private fun closeCurrentOffer(valuePerKm: Float, cardBitmap: Bitmap, cropTopOffsetPx: Int) {
+    private fun closeCurrentOffer(reason: String, cardBitmap: Bitmap, cropTopOffsetPx: Int) {
         val match = closeButtonTemplate?.let { template ->
             ButtonImageMatcher.findCloseButton(cardBitmap, template)
         }
         if (match != null) {
             val screenX = match.x
             val screenY = match.y + cropTopOffsetPx
-            Log.d(TAG, "Valor/km ($valuePerKm) abaixo do limite, fechando por imagem em ($screenX, $screenY)")
+            Log.d(TAG, "$reason, fechando por imagem em ($screenX, $screenY)")
             tapAt(screenX, screenY)
             return
         }
 
         if (Config.closeButtonX < 0f || Config.closeButtonY < 0f) {
-            Log.d(TAG, "Valor/km ($valuePerKm) abaixo do limite, mas nenhum método de fechar está disponível")
+            Log.d(TAG, "$reason, mas nenhum método de fechar está disponível")
             return
         }
         Log.d(
             TAG,
-            "Valor/km ($valuePerKm) abaixo do limite, botão não encontrado por imagem, varrendo a partir de " +
+            "$reason, botão não encontrado por imagem, varrendo a partir de " +
                 "(${Config.closeButtonX}, ${Config.closeButtonY})"
         )
         sweepTapCloseButton(Config.closeButtonX, Config.closeButtonY)
