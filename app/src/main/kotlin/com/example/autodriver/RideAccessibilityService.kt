@@ -107,18 +107,10 @@ class RideAccessibilityService : AccessibilityService() {
     }
 
     private fun requestScreenshot() {
-        // Our own overlays (history card, value/km card) can render inside the
-        // analyzed region and get read back by OCR as if they were part of
-        // the current offer, so they're hidden for the brief instant the
-        // screenshot is captured and restored right after.
-        HistoryOverlayService.setHidden(true)
-        OverlayCardService.setHidden(true)
         takeScreenshot(Display.DEFAULT_DISPLAY, mainExecutor, object : TakeScreenshotCallback {
             override fun onSuccess(result: ScreenshotResult) {
                 val hardwareBitmap = Bitmap.wrapHardwareBuffer(result.hardwareBuffer, result.colorSpace)
                 result.hardwareBuffer.close()
-                HistoryOverlayService.setHidden(false)
-                OverlayCardService.setHidden(false)
                 if (hardwareBitmap == null) {
                     ocrInFlight = false
                     return
@@ -151,8 +143,6 @@ class RideAccessibilityService : AccessibilityService() {
             }
 
             override fun onFailure(errorCode: Int) {
-                HistoryOverlayService.setHidden(false)
-                OverlayCardService.setHidden(false)
                 ocrInFlight = false
                 Log.d(TAG, "takeScreenshot falhou: $errorCode")
             }
@@ -194,9 +184,7 @@ class RideAccessibilityService : AccessibilityService() {
             pendingOutcome = null
             handler.postDelayed(offerWatchdog, OCR_THROTTLE_MS)
         }
-        texts.firstNotNullOfOrNull { text -> VALUE_PER_KM_REGEX.find(text)?.groupValues?.get(1) }
-            ?.replace(",", ".")?.toFloatOrNull()
-            ?.let { currentOfferValuePerKm = it }
+        extractValuePerKm(texts)?.let { currentOfferValuePerKm = it }
         extractDestination(texts)?.let { currentOfferDestination = it }
 
         // TEMPORARY: dump the exact analyzed frame so the close-button tap
@@ -260,9 +248,7 @@ class RideAccessibilityService : AccessibilityService() {
     private fun maybeAutoReject(texts: List<String>, cardBitmap: Bitmap, cropTopOffsetPx: Int): Boolean {
         if (!Config.rejectEnabled) return false
 
-        val valuePerKm = texts.firstNotNullOfOrNull { text ->
-            VALUE_PER_KM_REGEX.find(text)?.groupValues?.get(1)
-        }?.replace(",", ".")?.toFloatOrNull() ?: return false
+        val valuePerKm = extractValuePerKm(texts) ?: return false
         if (valuePerKm > Config.rejectWhenValueLessOrEqualTo) return false
 
         val now = System.currentTimeMillis()
@@ -287,7 +273,7 @@ class RideAccessibilityService : AccessibilityService() {
             val screenX = match.x
             val screenY = match.y + cropTopOffsetPx
             Log.d(TAG, "Valor/km ($valuePerKm) abaixo do limite, fechando por imagem em ($screenX, $screenY)")
-            tapAt(screenX, screenY)
+            tapBurst(screenX, screenY)
             return
         }
 
@@ -312,9 +298,7 @@ class RideAccessibilityService : AccessibilityService() {
         if (!Config.acceptEnabled) return false
         if (Config.acceptButtonX < 0f || Config.acceptButtonY < 0f) return false
 
-        val valuePerKm = texts.firstNotNullOfOrNull { text ->
-            VALUE_PER_KM_REGEX.find(text)?.groupValues?.get(1)
-        }?.replace(",", ".")?.toFloatOrNull() ?: return false
+        val valuePerKm = extractValuePerKm(texts) ?: return false
         if (valuePerKm < Config.acceptWhenValueGreaterThan) return false
 
         val now = System.currentTimeMillis()
@@ -336,6 +320,24 @@ class RideAccessibilityService : AccessibilityService() {
         TripHistory.add(TripRecord(valuePerKm, currentOfferDestination, outcome))
     }
 
+    /** Uber always renders the offer's own value/km with a trailing
+     * qualifier ("R$1.82/km est." in English, "R$ 1,82/km aprox." in
+     * Portuguese), while our own history overlay's rows read plainly as
+     * "R$ x,xx/km" with nothing after — so preferring a suffixed match keeps
+     * a stale row from that overlay (rendered above the real card and
+     * therefore earlier in reading order) from being picked up as if it
+     * were the current offer's price. Falls back to a plain match only if
+     * no suffixed one is found. */
+    private fun extractValuePerKm(texts: List<String>): Float? {
+        val suffixed = texts.firstNotNullOfOrNull { text ->
+            VALUE_PER_KM_WITH_SUFFIX_REGEX.find(text)?.groupValues?.get(1)
+        }
+        val raw = suffixed ?: texts.firstNotNullOfOrNull { text ->
+            VALUE_PER_KM_REGEX.find(text)?.groupValues?.get(1)
+        }
+        return raw?.replace(",", ".")?.toFloatOrNull()
+    }
+
     /** The first comma-separated segment is usually just the street name;
      * what follows (number, neighborhood, city) is more useful at a glance. */
     private fun extractDestination(texts: List<String>): String? =
@@ -351,6 +353,24 @@ class RideAccessibilityService : AccessibilityService() {
             .build()
         val dispatched = dispatchGesture(gesture, null, null)
         Log.d(TAG, "auto-ação: gesto disparado=$dispatched")
+    }
+
+    /** A single synthetic tap on Uber's offer card often doesn't register on
+     * the first (or even third) attempt — observed live, taking anywhere
+     * from 1 to 6 detection cycles to actually close the card even with the
+     * exact correct coordinates. Firing a short burst of taps at the same
+     * point in one gesture call raises the odds that at least one lands
+     * without waiting for another full OCR round-trip (~1-2s) per retry. */
+    private fun tapBurst(x: Float, y: Float) {
+        val builder = GestureDescription.Builder()
+        var startTime = 0L
+        repeat(TAP_BURST_COUNT) {
+            val path = Path().apply { moveTo(x, y) }
+            builder.addStroke(GestureDescription.StrokeDescription(path, startTime, TAP_DURATION_MS))
+            startTime += TAP_BURST_DELAY_MS
+        }
+        val dispatched = dispatchGesture(builder.build(), null, null)
+        Log.d(TAG, "auto-ação: rajada disparada=$dispatched")
     }
 
     /** Fires a column of short taps at a fixed X, spaced out over time within
@@ -383,6 +403,8 @@ class RideAccessibilityService : AccessibilityService() {
         private const val OFFER_MISS_TOLERANCE = 3
         private const val AUTO_ACTION_THROTTLE_MS = 1500L
         private const val TAP_DURATION_MS = 50L
+        private const val TAP_BURST_COUNT = 4
+        private const val TAP_BURST_DELAY_MS = 120L
         // The close button's X is stable across offer cards; its Y drifts with
         // card height, so auto-reject sweeps upward from the captured position
         // instead of tapping just one point.
@@ -402,6 +424,10 @@ class RideAccessibilityService : AccessibilityService() {
         private val PRICE_REGEX = Regex("""R\$\s*(\d+[.,]\d{2})""")
         private val DISTANCE_REGEX = Regex("""(\d+\.\d+)\s*km""")
         private val VALUE_PER_KM_REGEX = Regex("""R\$\s*(\d+[.,]\d{2})\s*/\s*km""")
+        private val VALUE_PER_KM_WITH_SUFFIX_REGEX = Regex(
+            """R\$\s*(\d+[.,]\d{2})\s*/\s*km\s*(est\.|aprox\.)""",
+            RegexOption.IGNORE_CASE
+        )
         private val ADDRESS_REGEX = Regex(
             """^(Rua|R\.|Av\.|Avenida|Alameda|Al\.|Rodovia|Rod\.|Estrada|Travessa)\b.*,.*""",
             RegexOption.IGNORE_CASE
