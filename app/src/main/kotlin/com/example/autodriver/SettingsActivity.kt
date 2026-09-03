@@ -18,12 +18,20 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var accessibilityPermissionStatus: TextView
     private lateinit var accessibilityPermissionButton: Button
     private lateinit var historyOverlaySwitch: SwitchMaterial
+    private lateinit var valueCardOverlaySwitch: SwitchMaterial
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
         findViewById<Button>(R.id.back_button).setOnClickListener { finish() }
+
+        valueCardOverlaySwitch = findViewById(R.id.value_card_overlay_switch)
+        valueCardOverlaySwitch.isChecked = Config.showValueCardOverlay
+        valueCardOverlaySwitch.setOnCheckedChangeListener { _, isChecked ->
+            Config.showValueCardOverlay = isChecked
+            PreferencesManager.saveConfig(this)
+        }
 
         visibleSecondsSlider = findViewById(R.id.visible_seconds_slider)
         visibleSecondsLabel = findViewById(R.id.visible_seconds_label)

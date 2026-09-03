@@ -27,7 +27,7 @@ class RideAccessibilityService : AccessibilityService() {
     private var ocrInFlight = false
     private var currentOfferValuePerKm: Float? = null
     private var currentOfferDestination: String = "Destino desconhecido"
-    private var currentOfferRecorded = false
+    private var pendingOutcome: TripOutcome? = null
     private val recognizer by lazy { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
 
     override fun onServiceConnected() {
@@ -130,9 +130,10 @@ class RideAccessibilityService : AccessibilityService() {
                     stopService(Intent(this, OverlayCardService::class.java))
                     offerShowing = false
                 }
-                if (!currentOfferRecorded) {
-                    recordHistory(TripOutcome.NO_ACTION)
-                }
+                // Recorded exactly once per offer, right when it actually
+                // disappears — not when we merely attempt an action on it,
+                // since a reject sweep may need several tries to land.
+                recordHistory(pendingOutcome ?: TripOutcome.NO_ACTION)
                 offerActive = false
                 missedOfferChecks = 0
             }
@@ -142,7 +143,7 @@ class RideAccessibilityService : AccessibilityService() {
 
         if (!offerActive) {
             offerActive = true
-            currentOfferRecorded = false
+            pendingOutcome = null
         }
         texts.firstNotNullOfOrNull { text -> VALUE_PER_KM_REGEX.find(text)?.groupValues?.get(1) }
             ?.replace(",", ".")?.toFloatOrNull()
@@ -172,6 +173,8 @@ class RideAccessibilityService : AccessibilityService() {
     }
 
     private fun handleOfferTexts(texts: List<String>): Boolean {
+        if (!Config.showValueCardOverlay) return false
+
         val totalValue = texts
             .filterNot { it.contains("/km", ignoreCase = true) }
             .firstNotNullOfOrNull { text ->
@@ -199,13 +202,13 @@ class RideAccessibilityService : AccessibilityService() {
 
     /** Returns true whenever this offer should be auto-rejected, regardless of
      * whether the tap actually fired this pass (throttled) — the overlay
-     * should stay suppressed on every pass while the decision holds. Requires
-     * the close-button position to be calibrated via Settings > "Capturar
-     * posição do X" — there is no geometry-based guess, since a guessed tap
-     * risks landing on the wrong control entirely. */
+     * should stay suppressed on every pass while the decision holds. The close
+     * button's X position is stable across offers, but its Y position isn't
+     * (taller cards — more stops, longer addresses — push it around), so
+     * instead of a single point this sweeps a column of taps from the bottom
+     * of the observed range to the top until the card closes. */
     private fun maybeAutoReject(texts: List<String>): Boolean {
         if (!Config.rejectEnabled) return false
-        if (Config.closeButtonX < 0f || Config.closeButtonY < 0f) return false
 
         val valuePerKm = texts.firstNotNullOfOrNull { text ->
             VALUE_PER_KM_REGEX.find(text)?.groupValues?.get(1)
@@ -215,14 +218,10 @@ class RideAccessibilityService : AccessibilityService() {
         val now = System.currentTimeMillis()
         if (now - lastAutoRejectAt >= AUTO_ACTION_THROTTLE_MS) {
             lastAutoRejectAt = now
-            Log.d(
-                TAG,
-                "Valor/km ($valuePerKm) abaixo do limite de recusa, recusando automaticamente em " +
-                    "(${Config.closeButtonX}, ${Config.closeButtonY})"
-            )
-            tapAt(Config.closeButtonX, Config.closeButtonY)
-            recordHistory(TripOutcome.REJECTED)
+            Log.d(TAG, "Valor/km ($valuePerKm) abaixo do limite de recusa, varrendo X para recusar")
+            sweepTapCloseButton()
         }
+        pendingOutcome = TripOutcome.REJECTED
         return true
     }
 
@@ -249,19 +248,23 @@ class RideAccessibilityService : AccessibilityService() {
                     "(${Config.acceptButtonX}, ${Config.acceptButtonY})"
             )
             tapAt(Config.acceptButtonX, Config.acceptButtonY)
-            recordHistory(TripOutcome.ACCEPTED)
         }
+        pendingOutcome = TripOutcome.ACCEPTED
         return true
     }
 
     private fun recordHistory(outcome: TripOutcome) {
         val valuePerKm = currentOfferValuePerKm ?: return
         TripHistory.add(TripRecord(valuePerKm, currentOfferDestination, outcome))
-        currentOfferRecorded = true
     }
 
+    /** The first comma-separated segment is usually just the street name;
+     * what follows (number, neighborhood, city) is more useful at a glance. */
     private fun extractDestination(texts: List<String>): String? =
-        texts.lastOrNull { ADDRESS_REGEX.containsMatchIn(it.trim()) }?.trim()
+        texts.lastOrNull { ADDRESS_REGEX.containsMatchIn(it.trim()) }
+            ?.trim()
+            ?.substringAfter(',')
+            ?.trim()
 
     private fun tapAt(x: Float, y: Float) {
         val path = Path().apply { moveTo(x, y) }
@@ -270,6 +273,24 @@ class RideAccessibilityService : AccessibilityService() {
             .build()
         val dispatched = dispatchGesture(gesture, null, null)
         Log.d(TAG, "auto-ação: gesto disparado=$dispatched")
+    }
+
+    /** Fires a column of short taps at a fixed X, spaced out over time within
+     * a single gesture, sweeping from the bottom of the observed close-button
+     * range up to the top — since the Y position varies with card height but
+     * the X position doesn't. */
+    private fun sweepTapCloseButton() {
+        val builder = GestureDescription.Builder()
+        var startTime = 0L
+        var y = SWEEP_Y_BOTTOM
+        while (y >= SWEEP_Y_TOP) {
+            val path = Path().apply { moveTo(SWEEP_X, y.toFloat()) }
+            builder.addStroke(GestureDescription.StrokeDescription(path, startTime, TAP_DURATION_MS))
+            startTime += SWEEP_STEP_DELAY_MS
+            y -= SWEEP_STEP_PX
+        }
+        val dispatched = dispatchGesture(builder.build(), null, null)
+        Log.d(TAG, "auto-reject: varredura disparada=$dispatched")
     }
 
     override fun onInterrupt() {}
@@ -282,6 +303,13 @@ class RideAccessibilityService : AccessibilityService() {
         private const val OFFER_MISS_TOLERANCE = 3
         private const val AUTO_ACTION_THROTTLE_MS = 1500L
         private const val TAP_DURATION_MS = 50L
+        // The close button's X is stable across offer cards; its Y drifts with
+        // card height, so auto-reject sweeps this column instead of one point.
+        private const val SWEEP_X = 913f
+        private const val SWEEP_Y_BOTTOM = 1750
+        private const val SWEEP_Y_TOP = 1050
+        private const val SWEEP_STEP_PX = 100
+        private const val SWEEP_STEP_DELAY_MS = 150L
         // Substrings robust to common single-character OCR slips on the offer
         // button label ("Selecionar" -> "Seiecionar", "Aceitar" -> "Acaitar")
         // while staying specific enough to avoid matching unrelated screen text.

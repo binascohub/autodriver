@@ -15,6 +15,7 @@ object PreferencesManager {
     private const val KEY_ACCEPT_BUTTON_X = "accept_button_x"
     private const val KEY_ACCEPT_BUTTON_Y = "accept_button_y"
     private const val KEY_SHOW_HISTORY_OVERLAY = "show_history_overlay"
+    private const val KEY_SHOW_VALUE_CARD_OVERLAY = "show_value_card_overlay"
     private const val LOCATION_DELIMITER = "\u0000"
 
     fun load(context: Context) {
@@ -35,6 +36,7 @@ object PreferencesManager {
         Config.acceptButtonX = prefs.getFloat(KEY_ACCEPT_BUTTON_X, Config.acceptButtonX)
         Config.acceptButtonY = prefs.getFloat(KEY_ACCEPT_BUTTON_Y, Config.acceptButtonY)
         Config.showHistoryOverlay = prefs.getBoolean(KEY_SHOW_HISTORY_OVERLAY, Config.showHistoryOverlay)
+        Config.showValueCardOverlay = prefs.getBoolean(KEY_SHOW_VALUE_CARD_OVERLAY, Config.showValueCardOverlay)
     }
 
     fun saveConfig(context: Context) {
@@ -51,6 +53,7 @@ object PreferencesManager {
             .putFloat(KEY_ACCEPT_BUTTON_X, Config.acceptButtonX)
             .putFloat(KEY_ACCEPT_BUTTON_Y, Config.acceptButtonY)
             .putBoolean(KEY_SHOW_HISTORY_OVERLAY, Config.showHistoryOverlay)
+            .putBoolean(KEY_SHOW_VALUE_CARD_OVERLAY, Config.showValueCardOverlay)
             .apply()
     }
 }

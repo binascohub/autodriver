@@ -5,15 +5,12 @@ import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.IBinder
-import androidx.core.content.ContextCompat
 import android.view.ContextThemeWrapper
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.widget.LinearLayout
-import android.widget.TextView
-import java.util.Locale
 
 class HistoryOverlayService : Service() {
 
@@ -63,21 +60,9 @@ class HistoryOverlayService : Service() {
         val context = container.context
         container.removeAllViews()
 
-        TripHistory.records.forEach { record ->
+        TripHistory.records.take(TripHistory.OVERLAY_VISIBLE_COUNT).forEach { record ->
             val row = LayoutInflater.from(context).inflate(R.layout.item_history_row, container, false)
-            row.findViewById<TextView>(R.id.history_value).text =
-                String.format(Locale("pt", "BR"), "R$ %.2f/km", record.valuePerKm)
-            row.findViewById<TextView>(R.id.history_destination).text = record.destination
-
-            val outcomeView = row.findViewById<TextView>(R.id.history_outcome)
-            val (label, colorRes) = when (record.outcome) {
-                TripOutcome.ACCEPTED -> "Aceito" to R.color.tw_green_400
-                TripOutcome.REJECTED -> "Recusado" to R.color.tw_red_400
-                TripOutcome.NO_ACTION -> "Sem ação" to R.color.tw_text_secondary
-            }
-            outcomeView.text = label
-            outcomeView.setTextColor(ContextCompat.getColor(context, colorRes))
-
+            bindTripRecordRow(row, record)
             container.addView(row)
         }
     }

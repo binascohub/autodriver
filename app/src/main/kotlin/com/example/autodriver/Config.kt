@@ -12,4 +12,5 @@ object Config {
     var acceptButtonX: Float = -1f
     var acceptButtonY: Float = -1f
     var showHistoryOverlay: Boolean = false
+    var showValueCardOverlay: Boolean = true
 }

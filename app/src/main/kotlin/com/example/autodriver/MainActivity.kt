@@ -49,10 +49,12 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.menu_button).setOnClickListener { anchor ->
             val popup = PopupMenu(this, anchor)
             popup.menu.add("Configurações")
+            popup.menu.add("Histórico")
             popup.menu.add("Sobre")
             popup.setOnMenuItemClickListener { item ->
                 when (item.title) {
                     "Configurações" -> startActivity(Intent(this, SettingsActivity::class.java))
+                    "Histórico" -> startActivity(Intent(this, HistoryActivity::class.java))
                     "Sobre" -> startActivity(Intent(this, AboutActivity::class.java))
                 }
                 true
