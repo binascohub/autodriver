@@ -65,6 +65,9 @@ class RideAccessibilityService : AccessibilityService() {
         if (Config.showHistoryOverlay) {
             startService(Intent(this, HistoryOverlayService::class.java))
         }
+
+        ShizukuTapManager.ensureListeners()
+        ShizukuTapManager.bindService()
     }
 
     override fun onDestroy() {
@@ -182,6 +185,16 @@ class RideAccessibilityService : AccessibilityService() {
         if (!offerActive) {
             offerActive = true
             pendingOutcome = null
+            // A value/km card left over from the *previous* offer (it stays
+            // up to Config.overlayVisibleSeconds, up to 10s) can still be on
+            // screen when this new one arrives — and Android silently drops
+            // synthetic touches on a view while any other window overlaps it
+            // (View.setFilterTouchesWhenObscured), so a stale card here can
+            // block every tap aimed at this offer's own close button.
+            if (offerShowing) {
+                stopService(Intent(this, OverlayCardService::class.java))
+                offerShowing = false
+            }
             handler.postDelayed(offerWatchdog, OCR_THROTTLE_MS)
         }
         extractValuePerKm(texts)?.let { currentOfferValuePerKm = it }
@@ -260,11 +273,13 @@ class RideAccessibilityService : AccessibilityService() {
         return true
     }
 
-    /** Locates the close button by matching [closeButtonTemplate] against the
-     * current card, since its Y position shifts with card height (more
-     * stops, longer addresses) while looking visually identical everywhere
-     * it appears. Falls back to the calibrated-position sweep when no
-     * template is bundled or no confident match is found. */
+    /** Closes the current offer by locating the close button's on-screen
+     * position with [ButtonImageMatcher] against [closeButtonTemplate] and
+     * tapping it — the button's Y position shifts with card height (more
+     * stops, longer addresses) while its appearance stays identical
+     * everywhere it appears, which is what template matching keys off of.
+     * Falls back to the calibrated-position sweep when no template is
+     * bundled or no confident match is found this pass. */
     private fun closeCurrentOffer(valuePerKm: Float, cardBitmap: Bitmap, cropTopOffsetPx: Int) {
         val match = closeButtonTemplate?.let { template ->
             ButtonImageMatcher.findCloseButton(cardBitmap, template)
@@ -273,7 +288,7 @@ class RideAccessibilityService : AccessibilityService() {
             val screenX = match.x
             val screenY = match.y + cropTopOffsetPx
             Log.d(TAG, "Valor/km ($valuePerKm) abaixo do limite, fechando por imagem em ($screenX, $screenY)")
-            tapBurst(screenX, screenY)
+            tapAt(screenX, screenY)
             return
         }
 
@@ -296,7 +311,6 @@ class RideAccessibilityService : AccessibilityService() {
      * wrong spot here risks accepting a ride the driver never chose. */
     private fun maybeAutoAccept(texts: List<String>): Boolean {
         if (!Config.acceptEnabled) return false
-        if (Config.acceptButtonX < 0f || Config.acceptButtonY < 0f) return false
 
         val valuePerKm = extractValuePerKm(texts) ?: return false
         if (valuePerKm < Config.acceptWhenValueGreaterThan) return false
@@ -304,15 +318,27 @@ class RideAccessibilityService : AccessibilityService() {
         val now = System.currentTimeMillis()
         if (now - lastAutoAcceptAt >= AUTO_ACTION_THROTTLE_MS) {
             lastAutoAcceptAt = now
-            Log.d(
-                TAG,
-                "Valor/km ($valuePerKm) acima do limite de aceitar, aceitando automaticamente em " +
-                    "(${Config.acceptButtonX}, ${Config.acceptButtonY})"
-            )
-            tapAt(Config.acceptButtonX, Config.acceptButtonY)
+            acceptCurrentOffer(valuePerKm)
         }
         pendingOutcome = TripOutcome.ACCEPTED
         return true
+    }
+
+    /** Accepting has no safe geometry-based guess for a full-width bottom
+     * button, and tapping the wrong spot risks accepting a ride the driver
+     * never chose — so unlike the close button, this only ever taps the
+     * position captured via Settings > "Capturar posição do Aceitar". */
+    private fun acceptCurrentOffer(valuePerKm: Float) {
+        if (Config.acceptButtonX < 0f || Config.acceptButtonY < 0f) {
+            Log.d(TAG, "Valor/km ($valuePerKm) acima do limite, mas a posição do Aceitar ainda não foi capturada")
+            return
+        }
+        Log.d(
+            TAG,
+            "Valor/km ($valuePerKm) acima do limite de aceitar, aceitando automaticamente em " +
+                "(${Config.acceptButtonX}, ${Config.acceptButtonY})"
+        )
+        tapAt(Config.acceptButtonX, Config.acceptButtonY)
     }
 
     private fun recordHistory(outcome: TripOutcome) {
@@ -346,7 +372,17 @@ class RideAccessibilityService : AccessibilityService() {
             ?.substringAfter(',')
             ?.trim()
 
+    /** Confirmed live: identical coordinates via `adb shell input tap` close
+     * Uber's offer card instantly, while dispatchGesture below does nothing
+     * at all — Uber silently ignores accessibility-dispatched touches on
+     * this card specifically. Shizuku (when authorized) issues that same
+     * real shell-level tap from inside the app; dispatchGesture is only a
+     * fallback for when Shizuku isn't installed/paired/granted. */
     private fun tapAt(x: Float, y: Float) {
+        if (ShizukuTapManager.tap(x, y)) {
+            Log.d(TAG, "auto-ação: toque via Shizuku")
+            return
+        }
         val path = Path().apply { moveTo(x, y) }
         val gesture = GestureDescription.Builder()
             .addStroke(GestureDescription.StrokeDescription(path, 0, TAP_DURATION_MS))
@@ -355,23 +391,6 @@ class RideAccessibilityService : AccessibilityService() {
         Log.d(TAG, "auto-ação: gesto disparado=$dispatched")
     }
 
-    /** A single synthetic tap on Uber's offer card often doesn't register on
-     * the first (or even third) attempt — observed live, taking anywhere
-     * from 1 to 6 detection cycles to actually close the card even with the
-     * exact correct coordinates. Firing a short burst of taps at the same
-     * point in one gesture call raises the odds that at least one lands
-     * without waiting for another full OCR round-trip (~1-2s) per retry. */
-    private fun tapBurst(x: Float, y: Float) {
-        val builder = GestureDescription.Builder()
-        var startTime = 0L
-        repeat(TAP_BURST_COUNT) {
-            val path = Path().apply { moveTo(x, y) }
-            builder.addStroke(GestureDescription.StrokeDescription(path, startTime, TAP_DURATION_MS))
-            startTime += TAP_BURST_DELAY_MS
-        }
-        val dispatched = dispatchGesture(builder.build(), null, null)
-        Log.d(TAG, "auto-ação: rajada disparada=$dispatched")
-    }
 
     /** Fires a column of short taps at a fixed X, spaced out over time within
      * a single gesture, starting at (startX, startY) — the captured close-
@@ -402,9 +421,7 @@ class RideAccessibilityService : AccessibilityService() {
         private const val CROP_TOP_FRACTION = 0.35f
         private const val OFFER_MISS_TOLERANCE = 3
         private const val AUTO_ACTION_THROTTLE_MS = 1500L
-        private const val TAP_DURATION_MS = 50L
-        private const val TAP_BURST_COUNT = 4
-        private const val TAP_BURST_DELAY_MS = 120L
+        private const val TAP_DURATION_MS = 100L
         // The close button's X is stable across offer cards; its Y drifts with
         // card height, so auto-reject sweeps upward from the captured position
         // instead of tapping just one point.

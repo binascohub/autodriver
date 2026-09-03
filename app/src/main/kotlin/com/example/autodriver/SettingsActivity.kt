@@ -17,6 +17,8 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var visibleSecondsLabel: TextView
     private lateinit var accessibilityPermissionStatus: TextView
     private lateinit var accessibilityPermissionButton: Button
+    private lateinit var shizukuStatus: TextView
+    private lateinit var shizukuPermissionButton: Button
     private lateinit var historyOverlaySwitch: SwitchMaterial
     private lateinit var valueCardOverlaySwitch: SwitchMaterial
 
@@ -64,6 +66,18 @@ class SettingsActivity : AppCompatActivity() {
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         }
 
+        shizukuStatus = findViewById(R.id.shizuku_status)
+        shizukuPermissionButton = findViewById(R.id.shizuku_permission_button)
+        shizukuPermissionButton.setOnClickListener {
+            if (ShizukuTapManager.isAvailable()) {
+                ShizukuTapManager.requestPermission()
+            } else {
+                Toast.makeText(this, "Abra o app Shizuku e toque em Start primeiro", Toast.LENGTH_LONG).show()
+            }
+        }
+        ShizukuTapManager.ensureListeners()
+        ShizukuTapManager.onStateChanged = { runOnUiThread { updateShizukuStatus() } }
+
         historyOverlaySwitch = findViewById(R.id.history_overlay_switch)
         historyOverlaySwitch.isChecked = Config.showHistoryOverlay
         historyOverlaySwitch.setOnCheckedChangeListener { _, isChecked ->
@@ -87,6 +101,7 @@ class SettingsActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updateAccessibilityPermissionStatus()
+        updateShizukuStatus()
     }
 
     private fun updateAccessibilityPermissionStatus() {
@@ -101,5 +116,26 @@ class SettingsActivity : AppCompatActivity() {
             ContextCompat.getColor(this, if (granted) R.color.tw_green_400 else R.color.tw_red_400)
         )
         accessibilityPermissionButton.visibility = if (granted) android.view.View.GONE else android.view.View.VISIBLE
+    }
+
+    private fun updateShizukuStatus() {
+        val running = ShizukuTapManager.isAvailable()
+        if (ShizukuTapManager.hasPermission()) {
+            ShizukuTapManager.bindService()
+        }
+        // checkSelfPermission() alone isn't a reliable signal on this setup —
+        // the user service actually being bound is the only real proof the
+        // tap path will work, so the button stays visible until that happens.
+        val bound = ShizukuTapManager.isServiceBound()
+
+        shizukuStatus.text = when {
+            !running -> "Não iniciado"
+            !bound -> "Sem permissão"
+            else -> "Concedida"
+        }
+        shizukuStatus.setTextColor(
+            ContextCompat.getColor(this, if (bound) R.color.tw_green_400 else R.color.tw_red_400)
+        )
+        shizukuPermissionButton.visibility = if (bound) android.view.View.GONE else android.view.View.VISIBLE
     }
 }
