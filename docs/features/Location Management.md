@@ -18,4 +18,4 @@ A simple list of free-text addresses/locations the user can maintain from the ma
 
 ## Current scope
 
-`RideAccessibilityService.isDestinationBlocked` reads `Config.locations` on every OCR pass, matching each entry against the offer's extracted destination with a case-insensitive substring check. A match forces an auto-reject regardless of the offer's value/km — see [[Auto-Reject Low Offers]] for how this interacts with the accept threshold. The overlay itself still doesn't filter or color based on this list.
+`Config.isDestinationBlocked` is called from `RideAccessibilityService` on every OCR pass, matching each `Config.locations` entry against the offer's extracted destination with a case-insensitive substring check. A match forces an auto-reject regardless of the offer's value/km — see [[Auto-Reject Low Offers]] for how this interacts with the accept threshold. The overlay itself still doesn't filter or color based on this list.

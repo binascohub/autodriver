@@ -29,8 +29,10 @@ The offer card (product name, total price, the "R$X,XX/km aprox." line, distance
 1. `maybeAutoReject(texts, cardBitmap, cropTopOffsetPx)` runs on every successful OCR pass while an offer is showing.
 2. It's a no-op unless `Config.rejectEnabled` is `true`.
 3. It reads the value/km directly off the screen using `VALUE_PER_KM_REGEX` = `R\$\s*(\d+,\d{2})\s*/\s*km`, matching the "R$1,53/km" text Uber already renders on the card — this is the same number the driver sees, not a recomputed value.
-4. It also checks `isDestinationBlocked(currentOfferDestination)` — a case-insensitive substring match against every entry in `Config.locations`.
+4. It also checks `Config.isDestinationBlocked(currentOfferDestination)` — a case-insensitive substring match against every entry in `Config.locations`.
 5. The offer is auto-rejected if *either* the value/km is at or below `Config.rejectWhenValueLessOrEqualTo` *or* the destination is blocked. If neither holds, nothing happens (offer is left for the driver, and [[Value Per KM Overlay]] still shows/colors normally via the existing `handleOfferTexts` call).
+6. `currentOfferDestination` (and `currentOfferValuePerKm`) reset to their unknown/`null` defaults whenever a new offer starts (the `!offerActive` branch in `onOcrResult`), so a value read from the *previous* offer can never leak into this decision if the new offer's own OCR pass hasn't resolved a destination yet.
+7. The log line for a destination-blocked reject never includes the destination text itself — only "destination is on the reject list" — since `Log.d` output ships in release builds and ride details must not appear there.
 
 ## How the tap location is computed
 

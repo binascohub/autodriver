@@ -29,7 +29,7 @@ class RideAccessibilityService : AccessibilityService() {
     private var lastAutoAcceptAt = 0L
     private var ocrInFlight = false
     private var currentOfferValuePerKm: Float? = null
-    private var currentOfferDestination: String = "Destino desconhecido"
+    private var currentOfferDestination: String = UNKNOWN_DESTINATION
     private var pendingOutcome: TripOutcome? = null
     private val recognizer by lazy { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
     private val handler = Handler(Looper.getMainLooper())
@@ -185,6 +185,12 @@ class RideAccessibilityService : AccessibilityService() {
         if (!offerActive) {
             offerActive = true
             pendingOutcome = null
+            // A fresh offer starts with no known value/destination of its own
+            // yet — leaving the previous offer's values here would let a
+            // stale destination match the reject list (or a stale value/km
+            // pass the threshold) before this offer's own OCR read lands.
+            currentOfferValuePerKm = null
+            currentOfferDestination = UNKNOWN_DESTINATION
             // A value/km card left over from the *previous* offer (it stays
             // up to Config.overlayVisibleSeconds, up to 10s) can still be on
             // screen when this new one arrives — and Android silently drops
@@ -266,14 +272,16 @@ class RideAccessibilityService : AccessibilityService() {
         if (!Config.rejectEnabled) return false
 
         val valuePerKm = extractValuePerKm(texts)
-        val destinationBlocked = isDestinationBlocked(currentOfferDestination)
+        val destinationBlocked = Config.isDestinationBlocked(currentOfferDestination)
         val belowThreshold = valuePerKm != null && valuePerKm <= Config.rejectWhenValueLessOrEqualTo
         if (!destinationBlocked && !belowThreshold) return false
 
+        // Never log the destination itself here: ride details must not ship
+        // in release logcat output.
         val reason = if (destinationBlocked) {
-            "destino \"$currentOfferDestination\" está na lista de recusar"
+            "destination is on the reject list"
         } else {
-            "valor/km ($valuePerKm) abaixo do limite"
+            "value/km ($valuePerKm) at or below reject threshold"
         }
 
         val now = System.currentTimeMillis()
@@ -284,13 +292,6 @@ class RideAccessibilityService : AccessibilityService() {
         pendingOutcome = TripOutcome.REJECTED
         return true
     }
-
-    /** True when [destination] matches an address the driver added to the
-     * reject list (Settings > "Recusar" card) — a plain case-insensitive
-     * substring match, since entries are free-typed street/neighborhood
-     * names rather than exact addresses. */
-    private fun isDestinationBlocked(destination: String): Boolean =
-        Config.locations.any { blocked -> destination.contains(blocked, ignoreCase = true) }
 
     /** Closes the current offer by locating the close button's on-screen
      * position with [ButtonImageMatcher] against [closeButtonTemplate] and
@@ -306,18 +307,18 @@ class RideAccessibilityService : AccessibilityService() {
         if (match != null) {
             val screenX = match.x
             val screenY = match.y + cropTopOffsetPx
-            Log.d(TAG, "$reason, fechando por imagem em ($screenX, $screenY)")
+            Log.d(TAG, "$reason, closing via image match at ($screenX, $screenY)")
             tapAt(screenX, screenY)
             return
         }
 
         if (Config.closeButtonX < 0f || Config.closeButtonY < 0f) {
-            Log.d(TAG, "$reason, mas nenhum método de fechar está disponível")
+            Log.d(TAG, "$reason, but no close method is available")
             return
         }
         Log.d(
             TAG,
-            "$reason, botão não encontrado por imagem, varrendo a partir de " +
+            "$reason, button not found by image match, sweeping from " +
                 "(${Config.closeButtonX}, ${Config.closeButtonY})"
         )
         sweepTapCloseButton(Config.closeButtonX, Config.closeButtonY)
@@ -434,6 +435,7 @@ class RideAccessibilityService : AccessibilityService() {
 
     companion object {
         private const val TAG = "RideAccessibility"
+        private const val UNKNOWN_DESTINATION = "Destino desconhecido"
         private const val TARGET_PACKAGE = "com.ubercab.driver"
         private const val OCR_THROTTLE_MS = 700L
         private const val OCR_STUCK_TIMEOUT_MS = 5000L
