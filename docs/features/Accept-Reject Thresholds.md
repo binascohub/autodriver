@@ -35,4 +35,4 @@ Switch toggles save immediately (`PreferencesManager.saveConfig`). Threshold tex
 - `valuePerKm >= acceptThreshold` → card background becomes `R.color.tw_green_600` (accept color).
 - Otherwise the card keeps its default (neutral) background.
 
-Note: `acceptEnabled` is stored in `Config` and editable from the UI, but is not currently read by `OverlayCardService` — only the accept threshold value is applied to coloring. `rejectEnabled`, however, now also drives [[Auto-Reject Low Offers]]: turning it on doesn't just color the overlay red, it makes the app automatically decline offers at/below the reject threshold. See [[Config Reference]] for the full breakdown.
+Note: `acceptEnabled` is stored in `Config` and editable from the UI, but is not currently read by `OverlayCardService` — only the accept threshold value is applied to coloring. `rejectEnabled` also gates [[Auto-Reject Low Offers]]'s decision logic, but that feature is currently alert-only (logs the decision, takes no action) — see its status note for why. See [[Config Reference]] for the full breakdown.

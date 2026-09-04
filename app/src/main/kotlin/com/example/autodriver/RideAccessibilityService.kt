@@ -213,16 +213,14 @@ class RideAccessibilityService : AccessibilityService() {
             Log.d(TAG, "debug save falhou: ${e.message}")
         }
 
-        // If we're about to auto-accept/reject, don't show our own overlay:
-        // Android silently drops touches (even synthetic ones) on security-
-        // sensitive buttons when another window is present on screen at all
-        // (View.setFilterTouchesWhenObscured), so our card could be the very
-        // thing preventing the tap from registering.
-        val autoRejected = maybeAutoReject(texts, debugBitmap, cropTopOffsetPx)
-        val autoAccepted = !autoRejected && maybeAutoAccept(texts)
-        if (!autoRejected && !autoAccepted) {
-            handleOfferTexts(texts)
-        }
+        // No tap delivery mechanism currently reaches Uber's offer buttons
+        // (dispatchGesture is confirmed silently ignored on this specific
+        // card — see docs/features/Auto-Reject Low Offers.md), so these only
+        // log what *would* happen; the alert card below is always shown and
+        // the driver decides manually.
+        maybeAutoReject(texts, debugBitmap, cropTopOffsetPx)
+        maybeAutoAccept(texts)
+        handleOfferTexts(texts)
     }
 
     private fun handleOfferTexts(texts: List<String>): Boolean {
@@ -253,18 +251,13 @@ class RideAccessibilityService : AccessibilityService() {
         return true
     }
 
-    /** Returns true whenever this offer should be auto-rejected, regardless of
-     * whether the tap actually fired this pass (throttled) — the overlay
-     * should stay suppressed on every pass while the decision holds. A
-     * destination on the reject list takes priority over the accept
-     * threshold: it forces a reject even when the value/km would otherwise
-     * qualify for auto-accept, since [onOcrResult] only evaluates
-     * [maybeAutoAccept] when this returns false. The close button's X
-     * position is stable across offers, but its Y position isn't (taller
-     * cards — more stops, longer addresses — push it around), so instead of
-     * a single point this sweeps a column of taps starting at the position
-     * captured via Settings > "Capturar posição do X" and moving upward
-     * until the card closes. */
+    /** Logs (throttled) whenever this offer meets the reject condition — a
+     * destination on the reject list, or a value/km at or below the reject
+     * threshold. Does not act on the decision: no tap mechanism currently
+     * reaches Uber's offer buttons, so [pendingOutcome] is left untouched
+     * and the offer is always left for the driver to handle manually (see
+     * [onOcrResult]). Kept as the decision logic ready to be wired to a real
+     * tap mechanism once one exists. */
     private fun maybeAutoReject(texts: List<String>, cardBitmap: Bitmap, cropTopOffsetPx: Int): Boolean {
         if (!Config.rejectEnabled) return false
 
@@ -286,7 +279,6 @@ class RideAccessibilityService : AccessibilityService() {
             lastAutoRejectAt = now
             closeCurrentOffer(reason, cardBitmap, cropTopOffsetPx)
         }
-        pendingOutcome = TripOutcome.REJECTED
         return true
     }
 
@@ -321,11 +313,10 @@ class RideAccessibilityService : AccessibilityService() {
         sweepTapCloseButton(Config.closeButtonX, Config.closeButtonY)
     }
 
-    /** Returns true whenever this offer should be auto-accepted (same
-     * suppress-the-overlay contract as [maybeAutoReject]). Requires the accept
-     * button position to have been calibrated via Settings — there's no safe
-     * geometry-based guess for a full-width bottom button, and tapping the
-     * wrong spot here risks accepting a ride the driver never chose. */
+    /** Logs (throttled) whenever this offer meets the accept condition —
+     * same alert-only contract as [maybeAutoReject]: no tap mechanism
+     * currently reaches Uber's offer buttons, so nothing is actually
+     * accepted and the driver decides manually. */
     private fun maybeAutoAccept(texts: List<String>): Boolean {
         if (!Config.acceptEnabled) return false
 
@@ -337,7 +328,6 @@ class RideAccessibilityService : AccessibilityService() {
             lastAutoAcceptAt = now
             acceptCurrentOffer(valuePerKm)
         }
-        pendingOutcome = TripOutcome.ACCEPTED
         return true
     }
 

@@ -8,7 +8,7 @@ Back to [[Home]] · Related: [[Config Reference]], [[Auto-Reject Low Offers]]
 
 **File:** [MainActivity.kt](../../app/src/main/kotlin/com/example/autodriver/MainActivity.kt) · Layouts: [activity_main.xml](../../app/src/main/res/layout/activity_main.xml), [item_location.xml](../../app/src/main/res/layout/item_location.xml)
 
-A simple list of free-text addresses/locations the user can maintain from the main screen (in the "Recusar" card), backed by `Config.locations`. Any offer whose OCR-read destination matches one of these entries is auto-rejected — see [[Auto-Reject Low Offers]].
+A simple list of free-text addresses/locations the user can maintain from the main screen (in the "Recusar" card), backed by `Config.locations`. Any offer whose OCR-read destination matches one of these entries is flagged for reject — see [[Auto-Reject Low Offers]] for the current alert-only status (no tap is actually performed).
 
 ## Behavior
 
@@ -18,4 +18,4 @@ A simple list of free-text addresses/locations the user can maintain from the ma
 
 ## Current scope
 
-`Config.isDestinationBlocked` is called from `RideAccessibilityService` on every OCR pass, matching each `Config.locations` entry against the offer's extracted destination with a case-insensitive substring check. A match forces an auto-reject regardless of the offer's value/km — see [[Auto-Reject Low Offers]] for how this interacts with the accept threshold. The overlay itself still doesn't filter or color based on this list.
+`Config.isDestinationBlocked` is called from `RideAccessibilityService` on every OCR pass, matching each `Config.locations` entry against the offer's extracted destination with a case-insensitive substring check. A match is logged as a reject condition (intended to take priority over the accept threshold once a tap mechanism exists — see [[Auto-Reject Low Offers]]), but no tap is actually performed today. The overlay itself still doesn't filter or color based on this list.

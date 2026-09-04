@@ -8,14 +8,22 @@ Back to [[Home]] · Related: [[Ride Offer Detection]], [[Accept-Reject Threshold
 
 **File:** [RideAccessibilityService.kt](../../app/src/main/kotlin/com/example/autodriver/RideAccessibilityService.kt)
 
-Automatically declines a ride offer by tapping its close ("X") button when either of two conditions holds — no driver interaction needed:
+## Current status: alert-only, no automatic tap
+
+Uber Driver silently ignores `AccessibilityService.dispatchGesture()` touches on its offer card's close/accept buttons specifically — confirmed live with reproducible before/after screenshots (identical coordinates via `adb shell input tap` close the card instantly; dispatchGesture at those same coordinates does nothing at all). A Shizuku-based (non-root, shell-privileged) tap mechanism was built and removed again after hitting an unresolved upstream OEM bug ([RikkaApps/Shizuku#1198](https://github.com/RikkaApps/Shizuku/issues/1198)) that crashes Shizuku's UserService on Xiaomi/MIUI devices with a MediaTek chipset before any tap could be issued.
+
+As a result, **`maybeAutoReject`/`maybeAutoAccept` currently only detect and log the decision — they never act on it.** `onOcrResult` always shows the [[Value Per KM Overlay|alert card]] regardless of what these functions decide, and every offer is recorded in history as `NO_ACTION` (see [[Config Reference]]) since the app never actually taps anything. The decision logic (thresholds, destination-list matching) and the tap-location code below are kept intact so a real tap mechanism can be wired back in later without re-deriving this logic.
+
+## Decision logic (currently alert-only, see above)
+
+`maybeAutoReject`/`maybeAutoAccept` compute (and log, throttled) whenever either of two conditions holds:
 
 - the value/km shown by Uber on the offer card is at or below the configured reject threshold, or
 - the offer's destination matches an entry in the [[Location Management|reject list]].
 
-## Priority over auto-accept
+### Priority over auto-accept
 
-`onOcrResult` only evaluates `maybeAutoAccept` when `maybeAutoReject` returns `false` for that pass. Because a blocked destination makes `maybeAutoReject` return `true` on its own — independent of the value/km reading — a destination on the reject list always wins even when the offer's value/km is high enough to otherwise qualify for auto-accept. There is no configuration to invert this priority.
+`onOcrResult` calls both `maybeAutoReject` and `maybeAutoAccept` unconditionally (neither gates the other today, since neither takes any action). Once a real tap mechanism is wired back in, the intended priority is: a destination on the reject list should force a reject even when the value/km is high enough to otherwise qualify for auto-accept — evaluate `maybeAutoReject` first and only fall through to `maybeAutoAccept` when it returns `false`, as before.
 
 ## Why OCR, not the accessibility tree
 
@@ -30,22 +38,21 @@ The offer card (product name, total price, the "R$X,XX/km aprox." line, distance
 2. It's a no-op unless `Config.rejectEnabled` is `true`.
 3. It reads the value/km directly off the screen using `VALUE_PER_KM_REGEX` = `R\$\s*(\d+,\d{2})\s*/\s*km`, matching the "R$1,53/km" text Uber already renders on the card — this is the same number the driver sees, not a recomputed value.
 4. It also checks `Config.isDestinationBlocked(currentOfferDestination)` — a case-insensitive substring match against every entry in `Config.locations`.
-5. The offer is auto-rejected if *either* the value/km is at or below `Config.rejectWhenValueLessOrEqualTo` *or* the destination is blocked. If neither holds, nothing happens (offer is left for the driver, and [[Value Per KM Overlay]] still shows/colors normally via the existing `handleOfferTexts` call).
+5. The reject condition is met if *either* the value/km is at or below `Config.rejectWhenValueLessOrEqualTo` *or* the destination is blocked — this only produces a log line today (see status note above), not an action.
 6. `currentOfferDestination` (and `currentOfferValuePerKm`) reset to their unknown/`null` defaults whenever a new offer starts (the `!offerActive` branch in `onOcrResult`), so a value read from the *previous* offer can never leak into this decision if the new offer's own OCR pass hasn't resolved a destination yet.
 7. The log line for a destination-blocked reject never includes the destination text itself — only "destination is on the reject list" — since `Log.d` output ships in release builds and ride details must not appear there.
 
-## How the tap location is computed
+## How the tap location is computed (currently unused, see status note above)
 
-There's no accessible node to click, so the service simulates a touch with `dispatchGesture` (requires `android:canPerformGestures="true"`, added to [accessibility_service_config.xml](../../app/src/main/res/xml/accessibility_service_config.xml)):
+There's no accessible node to click, so `closeCurrentOffer`/`acceptCurrentOffer` locate a tap point and `tapAt` simulates a touch with `dispatchGesture` (requires `android:canPerformGestures="true"`, added to [accessibility_service_config.xml](../../app/src/main/res/xml/accessibility_service_config.xml)) — this call never actually closes the card (see status note above), but is kept as the plumbing to swap a working tap mechanism into:
 
-1. The product name and the close button sit on the same top row of the card. The **topmost recognized OCR line's bounding box** is used as a stand-in for that row's vertical position — this adapts automatically to cards of different heights (more stops/legs push the card's top edge higher), instead of relying on a fixed screen coordinate.
-2. That line's bounding box is in the *cropped bottom-half bitmap's* coordinate space, so its `top`/`centerY()` is offset back by `cropTopOffsetPx` (half the full screenshot's height) to get real screen coordinates.
-3. The horizontal tap position is fixed at `screenWidth - 32dp`, matching where the close icon sits near the right edge of the card in the observed layout.
-4. A single short tap (`GestureDescription.StrokeDescription`, ~50ms) is dispatched at `(tapX, tapY)`.
-5. Repeated triggers are throttled to one tap per 1.5s (`AUTO_REJECT_THROTTLE_MS`) via `lastAutoRejectAt`, so a few back-to-back accessibility/OCR events for the same offer don't fire multiple taps.
+1. `closeCurrentOffer` first tries [ButtonImageMatcher](../../app/src/main/kotlin/com/example/autodriver/ButtonImageMatcher.kt) to locate the close ("X") button by template match against `close_button_template.png` (bundled in `app/src/main/assets/`) — the button's appearance is stable across offers even though its Y position shifts with card height (more stops/legs push the card's top edge higher).
+2. If no confident match is found and a position was captured via Settings > "Capturar posição do X", it falls back to `sweepTapCloseButton`: a column of taps starting at that captured position and sweeping upward by `SWEEP_STEP_PX` every `SWEEP_STEP_DELAY_MS`, up to `SWEEP_SPAN_PX` total.
+3. `acceptCurrentOffer` only ever taps the position captured via Settings > "Capturar posição do Aceitar" — there's no safe geometry-based guess for a full-width bottom button.
+4. Repeated triggers are throttled to one attempt per 1.5s (`AUTO_ACTION_THROTTLE_MS`) via `lastAutoRejectAt`/`lastAutoAcceptAt`.
 
 ## Known limitations
 
-- The horizontal margin (`CLOSE_BUTTON_MARGIN_RIGHT_DP`) is a fixed value tuned to the observed card layout; it will need adjusting if Uber changes the card's padding/close-button size, since there is no accessible bounding box for the icon itself to measure against.
-- If OCR doesn't recognize the "/km" line on a given pass (poor contrast, screen animation mid-transition), that pass simply skips the auto-reject check — it will typically succeed on the next throttled OCR pass while the card is still showing.
-- This feature depends on the same accessibility + overlay permissions described in [[Permissions]], plus the newly required gesture-dispatch capability.
+- No tap mechanism currently reaches Uber's offer buttons — see the status note above. This is the primary limitation; everything below applies once one is wired back in.
+- If OCR doesn't recognize the "/km" line on a given pass (poor contrast, screen animation mid-transition), that pass simply skips the reject/accept check — it will typically succeed on the next throttled OCR pass while the card is still showing.
+- This feature depends on the same accessibility + overlay permissions described in [[Permissions]], plus the gesture-dispatch capability (unused today, but still declared).
