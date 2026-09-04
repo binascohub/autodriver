@@ -177,59 +177,6 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <TextView
-                        style="@style/TwCardTitle"
-                        android:text="Toque Automático (Shizuku)" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="O Uber ignora toques automáticos comuns no botão de recusar/aceitar. O Shizuku permite que o app toque de verdade na tela, sem precisar de root."
-                        android:textColor="@color/tw_text_secondary" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Serviço Shizuku"
-                            android:textColor="@color/tw_text_primary" />
-
-                        <TextView
-                            android:id="@+id/shizuku_status"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.AppCompatButton
-                        android:id="@+id/shizuku_permission_button"
-                        style="@style/TwPrimaryButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:text="Conceder Permissão" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                style="@style/TwCard"
-                android:layout_marginTop="16dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

@@ -31,11 +31,6 @@ android {
     }
 
     sourceSets["main"].kotlin.srcDirs("src/main/kotlin")
-
-    buildFeatures {
-        aidl = true
-        buildConfig = true
-    }
 }
 
 dependencies {
@@ -48,11 +43,4 @@ dependencies {
     implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     implementation("com.google.mlkit:text-recognition:16.0.1")
-    // Lets a normal (non-root) app run shell-level input taps via Shizuku's
-    // ADB-granted shell privileges — needed because Uber Driver silently
-    // ignores AccessibilityService.dispatchGesture() touches on its offer
-    // card (confirmed live: identical coordinates via `adb shell input tap`
-    // close the card instantly, while dispatchGesture does nothing at all).
-    implementation("dev.rikka.shizuku:api:13.1.5")
-    implementation("dev.rikka.shizuku:provider:13.1.5")
 }

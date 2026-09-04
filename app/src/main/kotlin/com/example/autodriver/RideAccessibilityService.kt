@@ -65,9 +65,6 @@ class RideAccessibilityService : AccessibilityService() {
         if (Config.showHistoryOverlay) {
             startService(Intent(this, HistoryOverlayService::class.java))
         }
-
-        ShizukuTapManager.ensureListeners()
-        ShizukuTapManager.bindService()
     }
 
     override fun onDestroy() {
@@ -395,14 +392,12 @@ class RideAccessibilityService : AccessibilityService() {
     /** Confirmed live: identical coordinates via `adb shell input tap` close
      * Uber's offer card instantly, while dispatchGesture below does nothing
      * at all — Uber silently ignores accessibility-dispatched touches on
-     * this card specifically. Shizuku (when authorized) issues that same
-     * real shell-level tap from inside the app; dispatchGesture is only a
-     * fallback for when Shizuku isn't installed/paired/granted. */
+     * this card specifically. No privileged tap delivery mechanism is wired
+     * up currently (see docs/features/Auto-Reject Low Offers.md), so this
+     * dispatchGesture call is known not to close the card on Uber's own
+     * offer buttons; it's kept as the one available tap primitive pending a
+     * working replacement. */
     private fun tapAt(x: Float, y: Float) {
-        if (ShizukuTapManager.tap(x, y)) {
-            Log.d(TAG, "auto-ação: toque via Shizuku")
-            return
-        }
         val path = Path().apply { moveTo(x, y) }
         val gesture = GestureDescription.Builder()
             .addStroke(GestureDescription.StrokeDescription(path, 0, TAP_DURATION_MS))
