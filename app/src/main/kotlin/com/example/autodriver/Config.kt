@@ -18,4 +18,14 @@ object Config {
      * names rather than exact addresses. */
     fun isDestinationBlocked(destination: String): Boolean =
         locations.any { blocked -> destination.contains(blocked, ignoreCase = true) }
+
+    /** True when any of [texts] contains an address on the reject list —
+     * checked against every OCR'd line from the offer card, not just the
+     * single resolved "destination" (drop-off) string. A driver adding
+     * "Colombo" to the list almost certainly wants to catch it showing up
+     * as the *pickup* too, not only as the final leg; checking the raw
+     * lines directly also sidesteps needing the drop-off address to have
+     * been successfully parsed out at all on this OCR pass. */
+    fun isAnyTextBlocked(texts: List<String>): Boolean =
+        locations.any { blocked -> texts.any { it.contains(blocked, ignoreCase = true) } }
 }

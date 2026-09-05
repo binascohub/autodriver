@@ -13,6 +13,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.widget.TextView
+import android.util.Log
 import androidx.core.content.ContextCompat
 import com.google.android.material.card.MaterialCardView
 import java.util.Locale
@@ -59,12 +60,17 @@ class OverlayCardService : Service() {
 
         // The numeral itself lights up amber/red/green like a taxi meter's
         // digits — the card housing always stays the same dark bezel,
-        // instead of flooding the whole card with a flat alert color.
+        // instead of flooding the whole card with a flat alert color. A
+        // blocked destination overrides the value/km coloring entirely: the
+        // whole card reads red, since that decision takes priority over
+        // whatever the rate itself would otherwise suggest.
         val stateColor = when {
+            destinationBlocked -> R.color.tw_red_400
             valuePerKm <= rejectThreshold -> R.color.tw_red_400
             valuePerKm >= acceptThreshold -> R.color.tw_green_400
             else -> R.color.accent_amber
         }
+        Log.d(TAG, "showCard: valuePerKm=$valuePerKm destinationBlocked=$destinationBlocked stateColor=$stateColor")
         val stateColorInt = ContextCompat.getColor(this, stateColor)
         view.findViewById<TextView>(R.id.overlay_value_per_km).setTextColor(stateColorInt)
         (view as MaterialCardView).setStrokeColor(stateColorInt)
@@ -100,6 +106,7 @@ class OverlayCardService : Service() {
     }
 
     companion object {
+        private const val TAG = "OverlayCardService"
         const val EXTRA_VALUE_PER_KM = "extra_value_per_km"
         const val EXTRA_ACCEPT_THRESHOLD = "extra_accept_threshold"
         const val EXTRA_REJECT_THRESHOLD = "extra_reject_threshold"

@@ -232,7 +232,10 @@ class RideAccessibilityService : AccessibilityService() {
         // own visible-seconds timer closes it, as long as the same offer is
         // still on screen — a jarring flicker instead of "closed, wait for
         // the next offer".
-        if (valueCardShownForOffer) return false
+        if (valueCardShownForOffer) {
+            Log.d(TAG, "handleOfferTexts: already shown for this offer, skipping")
+            return false
+        }
 
         // Reuses the same suffix-aware value/km extraction the reject/accept
         // decisions already rely on, instead of separately re-deriving it
@@ -240,9 +243,18 @@ class RideAccessibilityService : AccessibilityService() {
         // Uber renders a round total with no cents ("R$ 33" has no decimal
         // separator, so a price regex requiring one silently drops the
         // offer and the card never shows).
-        val valuePerKm = extractValuePerKm(texts) ?: return false
+        val valuePerKm = extractValuePerKm(texts)
+        if (valuePerKm == null) {
+            Log.d(TAG, "handleOfferTexts: no value/km on this OCR pass yet")
+            return false
+        }
 
-        Log.d(TAG, "Oferta detectada: R$$valuePerKm/km")
+        // Checked against every OCR'd line (not just currentOfferDestination,
+        // the parsed drop-off) so a reject-listed name showing up as the
+        // *pickup* still counts, and so this doesn't depend on the drop-off
+        // having already been parsed out successfully on this exact pass.
+        val destinationBlocked = Config.isAnyTextBlocked(texts)
+        Log.d(TAG, "Oferta detectada: R$$valuePerKm/km destinationBlocked=$destinationBlocked")
 
         val intent = Intent(this, OverlayCardService::class.java)
         intent.putExtra(OverlayCardService.EXTRA_VALUE_PER_KM, valuePerKm)
@@ -250,7 +262,7 @@ class RideAccessibilityService : AccessibilityService() {
         intent.putExtra(OverlayCardService.EXTRA_REJECT_THRESHOLD, Config.rejectWhenValueLessOrEqualTo)
         intent.putExtra(OverlayCardService.EXTRA_VISIBLE_SECONDS, Config.overlayVisibleSeconds)
         intent.putExtra(OverlayCardService.EXTRA_DESTINATION, currentOfferDestination)
-        intent.putExtra(OverlayCardService.EXTRA_DESTINATION_BLOCKED, Config.isDestinationBlocked(currentOfferDestination))
+        intent.putExtra(OverlayCardService.EXTRA_DESTINATION_BLOCKED, destinationBlocked)
         startService(intent)
         offerShowing = true
         valueCardShownForOffer = true
@@ -266,7 +278,7 @@ class RideAccessibilityService : AccessibilityService() {
      * tap mechanism once one exists. */
     private fun maybeAutoReject(texts: List<String>, cardBitmap: Bitmap, cropTopOffsetPx: Int): Boolean {
         val valuePerKm = extractValuePerKm(texts)
-        val destinationBlocked = Config.isDestinationBlocked(currentOfferDestination)
+        val destinationBlocked = Config.isAnyTextBlocked(texts)
         val belowThreshold = valuePerKm != null && valuePerKm <= Config.rejectWhenValueLessOrEqualTo
         if (!destinationBlocked && !belowThreshold) return false
 
@@ -451,8 +463,13 @@ class RideAccessibilityService : AccessibilityService() {
             """R\$\s*(\d+[.,]\d{2})\s*/\s*km\s*(est\.|aprox\.)""",
             RegexOption.IGNORE_CASE
         )
+        // \s instead of \b after the prefix: \b fails to match right after a
+        // period ("R.", "Av.", "Al.", "Rod.") followed by a space, since
+        // neither side of that position is a word character — confirmed live
+        // on "R. Pedro Osaki, Colombo" and "Av. Marginal ..., Colombo", both
+        // of which silently fell through to "Destino desconhecido".
         private val ADDRESS_REGEX = Regex(
-            """^(Rua|R\.|Av\.|Avenida|Alameda|Al\.|Rodovia|Rod\.|Estrada|Travessa)\b.*,.*""",
+            """^(Rua|R\.|Av\.|Avenida|Alameda|Al\.|Rodovia|Rod\.|Estrada|Travessa)\s.*,.*""",
             RegexOption.IGNORE_CASE
         )
     }

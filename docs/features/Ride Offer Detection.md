@@ -41,6 +41,10 @@ The offer card (price, the "R$X,XX/km aprox." line, distance breakdown, close bu
 
 See [[Value Per KM Overlay]] for what happens next.
 
+## Destination extraction
+
+`extractDestination` picks the *last* line matching `ADDRESS_REGEX` (offers list pickup before drop-off, and the drop-off is what matters for [[Location Management|reject-list matching]]), then keeps only what follows the first comma — the street name itself is discarded, "number, neighborhood, city" is what's useful at a glance. `ADDRESS_REGEX` requires a whitespace character (not a word-boundary `\b`) right after the street-type prefix (`Rua`, `R.`, `Av.`, `Avenida`, `Alameda`, `Al.`, `Rodovia`, `Rod.`, `Estrada`, `Travessa`): a `\b` there silently fails to match on every *abbreviated* prefix ("R.", "Av.", "Al.", "Rod.") followed by a space, since neither the `.` nor the space is a word character and `\b` needs a word/non-word transition. Confirmed live — offers whose pickup/drop-off used "R. Pedro Osaki, Colombo" or "Av. Marginal ..., Colombo" both fell through to `UNKNOWN_DESTINATION` ("Destino desconhecido"), silently disabling reject-list matching for that offer even though "Colombo" was on the list.
+
 ## Known limitations
 
 - `VALUE_PER_KM_REGEX`/`VALUE_PER_KM_WITH_SUFFIX_REGEX` assume Brazilian formatting (`R$ 1,82/km`, comma decimal) and require exactly two decimal digits — a per-km value Uber ever rendered without cents would hit the same silent-drop failure mode described above, just not yet observed in practice for that specific value.
