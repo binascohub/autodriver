@@ -53,12 +53,13 @@ class SettingsActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             val intent = Intent(this, OverlayCardService::class.java)
-            intent.putExtra(OverlayCardService.EXTRA_TOTAL_VALUE, 10.96f)
-            intent.putExtra(OverlayCardService.EXTRA_TOTAL_KM, 3.2f + 2.6f)
+            intent.putExtra(OverlayCardService.EXTRA_VALUE_PER_KM, 10.96f / (3.2f + 2.6f))
             intent.putExtra(OverlayCardService.EXTRA_ACCEPT_THRESHOLD, Config.acceptWhenValueGreaterThan)
             intent.putExtra(OverlayCardService.EXTRA_REJECT_THRESHOLD, Config.rejectWhenValueLessOrEqualTo)
             intent.putExtra(OverlayCardService.EXTRA_VISIBLE_SECONDS, visibleSecondsSlider.value.toInt())
-            intent.putExtra(OverlayCardService.EXTRA_DESTINATION, "Bairro Exemplo, Cidade Exemplo")
+            val sampleDestination = "Bairro Exemplo, Cidade Exemplo"
+            intent.putExtra(OverlayCardService.EXTRA_DESTINATION, sampleDestination)
+            intent.putExtra(OverlayCardService.EXTRA_DESTINATION_BLOCKED, Config.isDestinationBlocked(sampleDestination))
             startService(intent)
         }
 

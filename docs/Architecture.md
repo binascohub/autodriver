@@ -30,13 +30,12 @@ RideAccessibilityService ──reads Config thresholds──► starts ──►
 ## Data flow: from screen event to overlay
 
 1. Uber Driver posts an `AccessibilityEvent` for its package.
-2. `RideAccessibilityService.onAccessibilityEvent` walks the active window's `AccessibilityNodeInfo` tree (`collectTexts`) to gather all visible text/content-descriptions.
-3. If an offer button is present, the service also runs a screenshot + ML Kit text recognition pass on the bottom half of the screen (`maybeRequestOcr`, throttled to ~700ms) — see [[Ride Offer Detection#OCR fallback]]. The offer card's price/distance/value-per-km are not exposed as accessible text, so this OCR pass is the reliable source for that data, not just a fallback.
-4. `handleOfferTexts` extracts total price (`PRICE_REGEX`) and total distance (`DISTANCE_REGEX`) from whichever text source (tree or OCR) is passed to it, looking for an offer button label (`Selecionar`/`Aceitar`) at the caller level.
-5. On a valid match, it starts `OverlayCardService` with the parsed value, distance, and the current thresholds/duration read from `Config`.
-6. `OverlayCardService` computes value/km, colors the card according to [[Accept-Reject Thresholds]], adds it to the window, and auto-dismisses it after `overlayVisibleSeconds`.
-7. Independently, the OCR pass also feeds [[Auto-Reject Low Offers]]: if the on-screen value/km is at or below the reject threshold, the service simulates a tap on the card's close button via `dispatchGesture`.
-8. If the offer button disappears before a new offer is parsed, the service proactively stops `OverlayCardService`.
+2. `RideAccessibilityService.onAccessibilityEvent` treats this as a cue to run a screenshot + ML Kit text recognition pass (`maybeRequestOcr`, throttled to ~700ms) — see [[Ride Offer Detection]]. The offer card's button label, price, distance, and value/km are all rendered without accessible text/content-description nodes, so OCR is the only source for this data, not a fallback for tree-reading.
+3. `onOcrResult` checks the recognized lines for an offer button label (`OFFER_BUTTON_MARKERS`), then runs `extractValuePerKm` and `extractDestination` on the same lines.
+4. `handleOfferTexts` reuses that already-extracted value/km (rather than re-deriving it from separately-parsed price/distance text) and starts `OverlayCardService` with it, the destination, and the current thresholds/duration read from `Config`.
+5. `OverlayCardService` colors the card's numeral/stroke according to [[Accept-Reject Thresholds]], adds it to the window, and auto-dismisses it after `overlayVisibleSeconds`.
+6. Independently, the same OCR pass also feeds [[Auto-Reject Low Offers]]'s decision logic (value/km threshold and destination-list matching) — currently alert-only, logging the decision without acting on it (see that doc's status note).
+7. If the offer button disappears for several consecutive passes, the service proactively stops `OverlayCardService` and records the trip's outcome.
 
 ## Persistence model
 

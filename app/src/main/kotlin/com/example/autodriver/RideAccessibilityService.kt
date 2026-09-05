@@ -22,6 +22,7 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 class RideAccessibilityService : AccessibilityService() {
 
     private var offerShowing = false
+    private var valueCardShownForOffer = false
     private var offerActive = false
     private var missedOfferChecks = 0
     private var lastScreenshotAt = 0L
@@ -188,6 +189,7 @@ class RideAccessibilityService : AccessibilityService() {
             // pass the threshold) before this offer's own OCR read lands.
             currentOfferValuePerKm = null
             currentOfferDestination = UNKNOWN_DESTINATION
+            valueCardShownForOffer = false
             // A value/km card left over from the *previous* offer (it stays
             // up to Config.overlayVisibleSeconds, up to 10s) can still be on
             // screen when this new one arrives — and Android silently drops
@@ -225,30 +227,33 @@ class RideAccessibilityService : AccessibilityService() {
 
     private fun handleOfferTexts(texts: List<String>): Boolean {
         if (!Config.showValueCardOverlay) return false
+        // Show the card at most once per offer: without this, the card
+        // reopens on the next OCR pass (throttled to ~700ms) the instant its
+        // own visible-seconds timer closes it, as long as the same offer is
+        // still on screen — a jarring flicker instead of "closed, wait for
+        // the next offer".
+        if (valueCardShownForOffer) return false
 
-        val totalValue = texts
-            .filterNot { it.contains("/km", ignoreCase = true) }
-            .firstNotNullOfOrNull { text ->
-                PRICE_REGEX.find(text.trim())?.groupValues?.get(1)?.replace(",", ".")?.toFloatOrNull()
-            } ?: return false
+        // Reuses the same suffix-aware value/km extraction the reject/accept
+        // decisions already rely on, instead of separately re-deriving it
+        // from the total price and distance lines — that path broke whenever
+        // Uber renders a round total with no cents ("R$ 33" has no decimal
+        // separator, so a price regex requiring one silently drops the
+        // offer and the card never shows).
+        val valuePerKm = extractValuePerKm(texts) ?: return false
 
-        val totalKm = texts
-            .flatMap { text -> DISTANCE_REGEX.findAll(text).map { it.groupValues[1] } }
-            .mapNotNull { it.toFloatOrNull() }
-            .sum()
-        if (totalKm <= 0f) return false
-
-        Log.d(TAG, "Oferta detectada: R$$totalValue / ${totalKm}km")
+        Log.d(TAG, "Oferta detectada: R$$valuePerKm/km")
 
         val intent = Intent(this, OverlayCardService::class.java)
-        intent.putExtra(OverlayCardService.EXTRA_TOTAL_VALUE, totalValue)
-        intent.putExtra(OverlayCardService.EXTRA_TOTAL_KM, totalKm)
+        intent.putExtra(OverlayCardService.EXTRA_VALUE_PER_KM, valuePerKm)
         intent.putExtra(OverlayCardService.EXTRA_ACCEPT_THRESHOLD, Config.acceptWhenValueGreaterThan)
         intent.putExtra(OverlayCardService.EXTRA_REJECT_THRESHOLD, Config.rejectWhenValueLessOrEqualTo)
         intent.putExtra(OverlayCardService.EXTRA_VISIBLE_SECONDS, Config.overlayVisibleSeconds)
         intent.putExtra(OverlayCardService.EXTRA_DESTINATION, currentOfferDestination)
+        intent.putExtra(OverlayCardService.EXTRA_DESTINATION_BLOCKED, Config.isDestinationBlocked(currentOfferDestination))
         startService(intent)
         offerShowing = true
+        valueCardShownForOffer = true
         return true
     }
 
@@ -441,8 +446,6 @@ class RideAccessibilityService : AccessibilityService() {
         private val OFFER_BUTTON_MARKERS = listOf("ecionar", "eitar", "aitar", "elect", "ccept", "atch")
         // Decimal separator varies with the app's language too: "R$ 18,65"
         // (PT) vs "R$18.65" (EN).
-        private val PRICE_REGEX = Regex("""R\$\s*(\d+[.,]\d{2})""")
-        private val DISTANCE_REGEX = Regex("""(\d+\.\d+)\s*km""")
         private val VALUE_PER_KM_REGEX = Regex("""R\$\s*(\d+[.,]\d{2})\s*/\s*km""")
         private val VALUE_PER_KM_WITH_SUFFIX_REGEX = Regex(
             """R\$\s*(\d+[.,]\d{2})\s*/\s*km\s*(est\.|aprox\.)""",

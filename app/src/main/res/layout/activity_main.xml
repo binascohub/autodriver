@@ -189,14 +189,6 @@
                         android:textColor="@color/tw_text_primary"
                         android:textColorHint="@color/tw_text_secondary" />
                 </LinearLayout>
-
-                <TextView
-                    android:id="@+id/capture_accept_status"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:textColor="@color/tw_text_secondary"
-                    android:textSize="12sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -255,14 +247,6 @@
                         android:textColor="@color/tw_text_primary"
                         android:textColorHint="@color/tw_text_secondary" />
                 </LinearLayout>
-
-                <TextView
-                    android:id="@+id/capture_reject_status"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:textColor="@color/tw_text_secondary"
-                    android:textSize="12sp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"

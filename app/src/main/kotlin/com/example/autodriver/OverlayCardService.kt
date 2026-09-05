@@ -27,33 +27,34 @@ class OverlayCardService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val totalValue = intent?.getFloatExtra(EXTRA_TOTAL_VALUE, 0f) ?: 0f
-        val totalKm = intent?.getFloatExtra(EXTRA_TOTAL_KM, 0f) ?: 0f
+        val valuePerKm = intent?.getFloatExtra(EXTRA_VALUE_PER_KM, 0f) ?: 0f
         val acceptThreshold = intent?.getFloatExtra(EXTRA_ACCEPT_THRESHOLD, 0f) ?: 0f
         val rejectThreshold = intent?.getFloatExtra(EXTRA_REJECT_THRESHOLD, 0f) ?: 0f
         val visibleSeconds = intent?.getIntExtra(EXTRA_VISIBLE_SECONDS, 5) ?: 5
         val destination = intent?.getStringExtra(EXTRA_DESTINATION).orEmpty()
-        showCard(totalValue, totalKm, acceptThreshold, rejectThreshold, visibleSeconds, destination)
+        val destinationBlocked = intent?.getBooleanExtra(EXTRA_DESTINATION_BLOCKED, false) ?: false
+        showCard(valuePerKm, acceptThreshold, rejectThreshold, visibleSeconds, destination, destinationBlocked)
         return START_NOT_STICKY
     }
 
     private fun showCard(
-        totalValue: Float,
-        totalKm: Float,
+        valuePerKm: Float,
         acceptThreshold: Float,
         rejectThreshold: Float,
         visibleSeconds: Int,
-        destination: String
+        destination: String,
+        destinationBlocked: Boolean
     ) {
         if (overlayView != null) return
 
         val themedContext = ContextThemeWrapper(this, R.style.OverlayTheme)
         val view = LayoutInflater.from(themedContext).inflate(R.layout.overlay_value_card, null)
 
-        val valuePerKm = if (totalKm > 0f) totalValue / totalKm else 0f
         view.findViewById<TextView>(R.id.overlay_value_per_km).text =
             String.format(Locale("pt", "BR"), "%.2f", valuePerKm)
         view.findViewById<TextView>(R.id.overlay_destination).text = destination
+        view.findViewById<View>(R.id.overlay_reject_warning).visibility =
+            if (destinationBlocked) View.VISIBLE else View.GONE
         view.findViewById<View>(R.id.overlay_close_button).setOnClickListener { stopSelf() }
 
         // The numeral itself lights up amber/red/green like a taxi meter's
@@ -99,11 +100,11 @@ class OverlayCardService : Service() {
     }
 
     companion object {
-        const val EXTRA_TOTAL_VALUE = "extra_total_value"
-        const val EXTRA_TOTAL_KM = "extra_total_km"
+        const val EXTRA_VALUE_PER_KM = "extra_value_per_km"
         const val EXTRA_ACCEPT_THRESHOLD = "extra_accept_threshold"
         const val EXTRA_REJECT_THRESHOLD = "extra_reject_threshold"
         const val EXTRA_VISIBLE_SECONDS = "extra_visible_seconds"
         const val EXTRA_DESTINATION = "extra_destination"
+        const val EXTRA_DESTINATION_BLOCKED = "extra_destination_blocked"
     }
 }

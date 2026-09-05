@@ -30,8 +30,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var accessibilityPermissionIcon: ImageView
     private lateinit var accessibilityPermissionStatus: TextView
     private lateinit var accessibilityPermissionButton: Button
-    private lateinit var captureAcceptStatus: TextView
-    private lateinit var captureRejectStatus: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,10 +76,6 @@ class MainActivity : AppCompatActivity() {
         acceptWhenValue = findViewById(R.id.accept_when_value)
         rejectWhenValue = findViewById(R.id.reject_when_value)
 
-        captureAcceptStatus = findViewById(R.id.capture_accept_status)
-        captureRejectStatus = findViewById(R.id.capture_reject_status)
-
-        updateCaptureStatuses()
         acceptWhenValue.setText(Config.acceptWhenValueGreaterThan.takeIf { it != 0f }?.toString() ?: "")
         rejectWhenValue.setText(Config.rejectWhenValueLessOrEqualTo.takeIf { it != 0f }?.toString() ?: "")
 
@@ -120,20 +114,7 @@ class MainActivity : AppCompatActivity() {
         updateOverlayPermissionStatus()
         updateAccessibilityPermissionStatus()
         PreferencesManager.load(this)
-        updateCaptureStatuses()
     }
-
-    private fun updateCaptureStatuses() {
-        captureAcceptStatus.text = formatCapturedPosition(Config.acceptButtonX, Config.acceptButtonY)
-        captureRejectStatus.text = formatCapturedPosition(Config.closeButtonX, Config.closeButtonY)
-    }
-
-    private fun formatCapturedPosition(x: Float, y: Float): String =
-        if (x >= 0f && y >= 0f) {
-            "Posição atual: (${x.toInt()}, ${y.toInt()})"
-        } else {
-            "Nenhuma posição capturada ainda"
-        }
 
     private fun saveThresholdsIfValid() {
         val acceptValue = acceptWhenValue.text?.toString()?.toFloatOrNull() ?: 0f

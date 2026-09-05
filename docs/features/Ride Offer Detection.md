@@ -8,7 +8,7 @@ Back to [[Home]] · Related: [[Architecture]], [[Permissions]], [[Value Per KM O
 
 **File:** [RideAccessibilityService.kt](../../app/src/main/kotlin/com/example/autodriver/RideAccessibilityService.kt)
 
-Detects when the Uber Driver app (`com.ubercab.driver`) is showing a ride offer, extracts its total price and distance, and triggers the [[Value Per KM Overlay]].
+Detects when the Uber Driver app (`com.ubercab.driver`) is showing a ride offer, extracts its value/km and destination, and triggers the [[Value Per KM Overlay]].
 
 ## How it's triggered
 
@@ -16,29 +16,25 @@ The service only reacts to `AccessibilityEvent`s whose `packageName` equals `com
 
 ## Detecting that an offer is showing
 
-1. `onAccessibilityEvent` collects visible text from all windows' root nodes (`windows.forEach { ... }`), falling back to `rootInActiveWindow` if nothing was found.
-2. `collectTexts` recursively walks the `AccessibilityNodeInfo` tree, gathering both `node.text` and `node.contentDescription` for every node.
-3. It checks whether any collected text matches an offer button label — `"Selecionar"` or `"Aceitar"` (case-insensitive, trimmed) — via `OFFER_BUTTON_TEXTS`. This button label is the only part of the offer card exposed as accessible text.
-4. If no offer button is present and a card was previously shown, the service stops `OverlayCardService` (the offer went away) and returns.
-5. If an offer button is present, `handleOfferTexts` also tries to extract data straight from the tree text (useful when it happens to be available):
-   - **Price**: the first text (excluding any containing `/km`) matching `PRICE_REGEX` = `R\$\s*(\d+,\d{2})`, comma converted to a dot and parsed as `Float`.
-   - **Distance**: sums every match of `DISTANCE_REGEX` = `\((\d+\.\d+)\s*km\)` across all collected texts (offers can list multiple stops/legs).
+The offer card (price, the "R$X,XX/km aprox." line, distance breakdown, close button) is rendered without accessible text/content-description nodes at all — only the "Selecionar"/"Aceitar" button label is exposed to the accessibility tree, and even that isn't read directly. Instead:
 
-## OCR pass (price, distance, value/km)
+1. `onAccessibilityEvent` treats every event from `com.ubercab.driver` (any event type) as a cue to run OCR — see below — rather than reading anything from the tree.
+2. `onOcrResult` checks the OCR'd lines against `OFFER_BUTTON_MARKERS` (substrings like `"ecionar"`, `"eitar"`, `"elect"`, `"ccept"` — robust to common single-character misreads and to the Driver app's language switching between Portuguese and English).
+3. If no offer button text is found for `OFFER_MISS_TOLERANCE` consecutive passes while an offer was active, the service stops `OverlayCardService` (the offer went away) and records the trip's outcome — see [[Auto-Reject Low Offers]].
 
-The offer card's price, the "R$X,XX/km aprox." line, and the distance breakdown are rendered without accessible text/content-description nodes — only the offer button label is exposed to the tree. So whenever an offer button is detected, the service always runs a screenshot + ML Kit text recognition pass on the bottom half of the screen, not just as a fallback:
+## OCR pass (price, distance, value/km, destination)
 
 1. `maybeRequestOcr` guards it: requires API 30+ (`Build.VERSION_CODES.R`, for `takeScreenshot`), skips if an OCR request is already in flight, and throttles to at most one screenshot every 700 ms.
-2. `requestScreenshot` calls `takeScreenshot(Display.DEFAULT_DISPLAY, ...)`, wraps the resulting hardware buffer into a `Bitmap`, and crops it to the **bottom half of the screen** (where the offer card appears) — the crop's top offset (`cropTopOffsetPx`) is kept for later coordinate math.
+2. `requestScreenshot` calls `takeScreenshot(Display.DEFAULT_DISPLAY, ...)`, wraps the resulting hardware buffer into a `Bitmap`, and crops it to the region below `CROP_TOP_FRACTION` of the screen height (taller cards push their top edge higher, so this starts above a plain bottom-half crop) — the crop's top offset (`cropTopOffsetPx`) is kept for later coordinate math.
 3. The cropped bitmap is run through ML Kit's `TextRecognition` (`TextRecognizerOptions.DEFAULT_OPTIONS`, Latin script).
-4. Recognized lines are passed into `handleOfferTexts` (same price/distance parsing as the tree path, used to show/update the overlay) **and** into `maybeAutoReject` (see [[Auto-Reject Low Offers]]), which additionally uses each line's bounding box to decide whether — and where — to tap the offer's close button.
+4. Recognized lines feed `extractValuePerKm` (matches `R$X,XX/km` with an "est."/"aprox." suffix when available — see [[Auto-Reject Low Offers]] for why the suffix is preferred), `extractDestination`, `maybeAutoReject`/`maybeAutoAccept`, and `handleOfferTexts` (starts/updates the overlay).
 5. `SecurityException` (missing screenshot permission) and recognizer failures are caught and logged; `ocrInFlight` is always reset so the throttle doesn't get stuck.
 
 ## Starting the overlay
 
-`handleOfferTexts` no longer decides whether an offer button is present — that's checked once in `onAccessibilityEvent` before it's called, from either the tree pass or the OCR pass. On a successful price/distance match, it starts `OverlayCardService` with:
+`handleOfferTexts` reuses the same `extractValuePerKm` result the reject/accept decisions already computed, rather than separately re-deriving a value from the total price and distance lines — an earlier version did that with its own price/distance regexes, which broke silently whenever Uber renders a round total with no cents (`"R$ 33"` has no decimal separator, so a regex requiring one drops the offer and the card never shows). On a successful match it starts `OverlayCardService` with:
 
-- `EXTRA_TOTAL_VALUE`, `EXTRA_TOTAL_KM` — parsed offer data.
+- `EXTRA_VALUE_PER_KM` — the same value/km used for the reject/accept decision.
 - `EXTRA_ACCEPT_THRESHOLD`, `EXTRA_REJECT_THRESHOLD` — current values from [[Config Reference|Config]].
 - `EXTRA_VISIBLE_SECONDS` — current `Config.overlayVisibleSeconds`.
 - `EXTRA_DESTINATION` — `currentOfferDestination`, the neighborhood/city text from `extractDestination` (see above).
@@ -47,4 +43,4 @@ See [[Value Per KM Overlay]] for what happens next.
 
 ## Known limitations
 
-- Price/distance regexes assume Brazilian formatting (`R$ 12,34`, distance in `km` with a dot decimal separator) — not internationalized.
+- `VALUE_PER_KM_REGEX`/`VALUE_PER_KM_WITH_SUFFIX_REGEX` assume Brazilian formatting (`R$ 1,82/km`, comma decimal) and require exactly two decimal digits — a per-km value Uber ever rendered without cents would hit the same silent-drop failure mode described above, just not yet observed in practice for that specific value.
