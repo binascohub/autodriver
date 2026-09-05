@@ -28,4 +28,17 @@ object Config {
      * been successfully parsed out at all on this OCR pass. */
     fun isAnyTextBlocked(texts: List<String>): Boolean =
         locations.any { blocked -> texts.any { it.contains(blocked, ignoreCase = true) } }
+
+    /** The color a value/km reading should be shown in — shared by the
+     * floating alert card and trip history, so a driver glancing back at
+     * history sees the same verdict color the card showed live: red when
+     * the destination was on the reject list or the rate was at/below the
+     * reject threshold, green at/above the accept threshold, amber
+     * otherwise. */
+    fun cardColorRes(valuePerKm: Float, destinationBlocked: Boolean): Int = when {
+        destinationBlocked -> R.color.tw_red_400
+        valuePerKm <= rejectWhenValueLessOrEqualTo -> R.color.tw_red_400
+        valuePerKm >= acceptWhenValueGreaterThan -> R.color.tw_green_400
+        else -> R.color.accent_amber
+    }
 }

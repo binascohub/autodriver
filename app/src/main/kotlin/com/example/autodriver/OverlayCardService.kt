@@ -29,19 +29,15 @@ class OverlayCardService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val valuePerKm = intent?.getFloatExtra(EXTRA_VALUE_PER_KM, 0f) ?: 0f
-        val acceptThreshold = intent?.getFloatExtra(EXTRA_ACCEPT_THRESHOLD, 0f) ?: 0f
-        val rejectThreshold = intent?.getFloatExtra(EXTRA_REJECT_THRESHOLD, 0f) ?: 0f
         val visibleSeconds = intent?.getIntExtra(EXTRA_VISIBLE_SECONDS, 5) ?: 5
         val destination = intent?.getStringExtra(EXTRA_DESTINATION).orEmpty()
         val destinationBlocked = intent?.getBooleanExtra(EXTRA_DESTINATION_BLOCKED, false) ?: false
-        showCard(valuePerKm, acceptThreshold, rejectThreshold, visibleSeconds, destination, destinationBlocked)
+        showCard(valuePerKm, visibleSeconds, destination, destinationBlocked)
         return START_NOT_STICKY
     }
 
     private fun showCard(
         valuePerKm: Float,
-        acceptThreshold: Float,
-        rejectThreshold: Float,
         visibleSeconds: Int,
         destination: String,
         destinationBlocked: Boolean
@@ -60,16 +56,10 @@ class OverlayCardService : Service() {
 
         // The numeral itself lights up amber/red/green like a taxi meter's
         // digits — the card housing always stays the same dark bezel,
-        // instead of flooding the whole card with a flat alert color. A
-        // blocked destination overrides the value/km coloring entirely: the
-        // whole card reads red, since that decision takes priority over
-        // whatever the rate itself would otherwise suggest.
-        val stateColor = when {
-            destinationBlocked -> R.color.tw_red_400
-            valuePerKm <= rejectThreshold -> R.color.tw_red_400
-            valuePerKm >= acceptThreshold -> R.color.tw_green_400
-            else -> R.color.accent_amber
-        }
+        // instead of flooding the whole card with a flat alert color. Shared
+        // with trip history (see TripHistory.kt) so a driver glancing back
+        // sees the same verdict color the card showed live.
+        val stateColor = Config.cardColorRes(valuePerKm, destinationBlocked)
         Log.d(TAG, "showCard: valuePerKm=$valuePerKm destinationBlocked=$destinationBlocked stateColor=$stateColor")
         val stateColorInt = ContextCompat.getColor(this, stateColor)
         view.findViewById<TextView>(R.id.overlay_value_per_km).setTextColor(stateColorInt)
@@ -108,8 +98,6 @@ class OverlayCardService : Service() {
     companion object {
         private const val TAG = "OverlayCardService"
         const val EXTRA_VALUE_PER_KM = "extra_value_per_km"
-        const val EXTRA_ACCEPT_THRESHOLD = "extra_accept_threshold"
-        const val EXTRA_REJECT_THRESHOLD = "extra_reject_threshold"
         const val EXTRA_VISIBLE_SECONDS = "extra_visible_seconds"
         const val EXTRA_DESTINATION = "extra_destination"
         const val EXTRA_DESTINATION_BLOCKED = "extra_destination_blocked"

@@ -31,6 +31,7 @@ class RideAccessibilityService : AccessibilityService() {
     private var ocrInFlight = false
     private var currentOfferValuePerKm: Float? = null
     private var currentOfferDestination: String = UNKNOWN_DESTINATION
+    private var currentOfferDestinationBlocked = false
     private var pendingOutcome: TripOutcome? = null
     private val recognizer by lazy { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
     private val handler = Handler(Looper.getMainLooper())
@@ -180,6 +181,34 @@ class RideAccessibilityService : AccessibilityService() {
         }
         missedOfferChecks = 0
 
+        val newValuePerKm = extractValuePerKm(texts)
+        val newDestination = extractDestination(texts)
+
+        // Uber can swap to a genuinely different offer while the Select/
+        // Accept button stays continuously visible — e.g. browsing multiple
+        // "Trip Radar" previews back to back. The "no offer button" check
+        // above never fires between them, so without this the whole
+        // offer-lifecycle state (shown card, destination-blocked flag,
+        // pending history outcome) stayed frozen on the *first* offer seen,
+        // silently ignoring every offer that followed it and losing their
+        // history entries entirely.
+        val offerChanged = offerActive &&
+            (
+                (
+                    newValuePerKm != null && currentOfferValuePerKm != null &&
+                        kotlin.math.abs(newValuePerKm - currentOfferValuePerKm!!) > 0.005f
+                    ) ||
+                    (
+                        newDestination != null && newDestination != UNKNOWN_DESTINATION &&
+                            currentOfferDestination != UNKNOWN_DESTINATION &&
+                            newDestination != currentOfferDestination
+                        )
+                )
+        if (offerChanged) {
+            recordHistory(pendingOutcome ?: TripOutcome.NO_ACTION)
+            offerActive = false
+        }
+
         if (!offerActive) {
             offerActive = true
             pendingOutcome = null
@@ -189,6 +218,7 @@ class RideAccessibilityService : AccessibilityService() {
             // pass the threshold) before this offer's own OCR read lands.
             currentOfferValuePerKm = null
             currentOfferDestination = UNKNOWN_DESTINATION
+            currentOfferDestinationBlocked = false
             valueCardShownForOffer = false
             // A value/km card left over from the *previous* offer (it stays
             // up to Config.overlayVisibleSeconds, up to 10s) can still be on
@@ -202,8 +232,17 @@ class RideAccessibilityService : AccessibilityService() {
             }
             handler.postDelayed(offerWatchdog, OCR_THROTTLE_MS)
         }
-        extractValuePerKm(texts)?.let { currentOfferValuePerKm = it }
-        extractDestination(texts)?.let { currentOfferDestination = it }
+        newValuePerKm?.let { currentOfferValuePerKm = it }
+        newDestination?.let { currentOfferDestination = it }
+        // Checked against every OCR'd line, not just currentOfferDestination
+        // (the parsed drop-off) — a reject-listed name showing up as the
+        // *pickup* still counts, and this doesn't depend on the drop-off
+        // having been successfully parsed out on this exact pass. Updated
+        // every pass so it's always the freshest reading, since it also
+        // feeds trip history once the offer disappears.
+        if (Config.isAnyTextBlocked(texts)) {
+            currentOfferDestinationBlocked = true
+        }
 
         // TEMPORARY: dump the exact analyzed frame so the close-button tap
         // coordinates can be calibrated against a real screenshot.
@@ -249,20 +288,13 @@ class RideAccessibilityService : AccessibilityService() {
             return false
         }
 
-        // Checked against every OCR'd line (not just currentOfferDestination,
-        // the parsed drop-off) so a reject-listed name showing up as the
-        // *pickup* still counts, and so this doesn't depend on the drop-off
-        // having already been parsed out successfully on this exact pass.
-        val destinationBlocked = Config.isAnyTextBlocked(texts)
-        Log.d(TAG, "Oferta detectada: R$$valuePerKm/km destinationBlocked=$destinationBlocked")
+        Log.d(TAG, "Oferta detectada: R$$valuePerKm/km destinationBlocked=$currentOfferDestinationBlocked")
 
         val intent = Intent(this, OverlayCardService::class.java)
         intent.putExtra(OverlayCardService.EXTRA_VALUE_PER_KM, valuePerKm)
-        intent.putExtra(OverlayCardService.EXTRA_ACCEPT_THRESHOLD, Config.acceptWhenValueGreaterThan)
-        intent.putExtra(OverlayCardService.EXTRA_REJECT_THRESHOLD, Config.rejectWhenValueLessOrEqualTo)
         intent.putExtra(OverlayCardService.EXTRA_VISIBLE_SECONDS, Config.overlayVisibleSeconds)
         intent.putExtra(OverlayCardService.EXTRA_DESTINATION, currentOfferDestination)
-        intent.putExtra(OverlayCardService.EXTRA_DESTINATION_BLOCKED, destinationBlocked)
+        intent.putExtra(OverlayCardService.EXTRA_DESTINATION_BLOCKED, currentOfferDestinationBlocked)
         startService(intent)
         offerShowing = true
         valueCardShownForOffer = true
@@ -278,7 +310,7 @@ class RideAccessibilityService : AccessibilityService() {
      * tap mechanism once one exists. */
     private fun maybeAutoReject(texts: List<String>, cardBitmap: Bitmap, cropTopOffsetPx: Int): Boolean {
         val valuePerKm = extractValuePerKm(texts)
-        val destinationBlocked = Config.isAnyTextBlocked(texts)
+        val destinationBlocked = currentOfferDestinationBlocked
         val belowThreshold = valuePerKm != null && valuePerKm <= Config.rejectWhenValueLessOrEqualTo
         if (!destinationBlocked && !belowThreshold) return false
 
