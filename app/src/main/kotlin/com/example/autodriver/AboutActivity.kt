@@ -1,7 +1,7 @@
 package com.example.autodriver
 
 import android.os.Bundle
-import android.widget.Button
+import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
 
 class AboutActivity : AppCompatActivity() {
@@ -10,6 +10,6 @@ class AboutActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_about)
 
-        findViewById<Button>(R.id.back_button).setOnClickListener { finish() }
+        findViewById<ImageButton>(R.id.back_button).setOnClickListener { finish() }
     }
 }

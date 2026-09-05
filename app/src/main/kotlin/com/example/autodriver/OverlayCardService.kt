@@ -50,20 +50,22 @@ class OverlayCardService : Service() {
 
         val valuePerKm = if (totalKm > 0f) totalValue / totalKm else 0f
         view.findViewById<TextView>(R.id.overlay_value_per_km).text =
-            String.format(Locale("pt", "BR"), "R$ %.2f/km", valuePerKm)
+            String.format(Locale("pt", "BR"), "%.2f", valuePerKm)
         view.findViewById<TextView>(R.id.overlay_breakdown).text =
             String.format(Locale("pt", "BR"), "R$ %.2f ÷ %.1f km", totalValue, totalKm)
         view.findViewById<View>(R.id.overlay_close_button).setOnClickListener { stopSelf() }
 
-        if (valuePerKm <= rejectThreshold) {
-            (view as MaterialCardView).setCardBackgroundColor(
-                ContextCompat.getColor(this, R.color.tw_red_600)
-            )
-        } else if (valuePerKm >= acceptThreshold) {
-            (view as MaterialCardView).setCardBackgroundColor(
-                ContextCompat.getColor(this, R.color.tw_green_600)
-            )
+        // The numeral itself lights up amber/red/green like a taxi meter's
+        // digits — the card housing always stays the same dark bezel,
+        // instead of flooding the whole card with a flat alert color.
+        val stateColor = when {
+            valuePerKm <= rejectThreshold -> R.color.tw_red_400
+            valuePerKm >= acceptThreshold -> R.color.tw_green_400
+            else -> R.color.accent_amber
         }
+        val stateColorInt = ContextCompat.getColor(this, stateColor)
+        view.findViewById<TextView>(R.id.overlay_value_per_km).setTextColor(stateColorInt)
+        (view as MaterialCardView).setStrokeColor(stateColorInt)
 
         val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY

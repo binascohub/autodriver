@@ -18,28 +18,25 @@
             android:orientation="horizontal"
             android:padding="16dp">
 
-            <androidx.appcompat.widget.AppCompatButton
+            <ImageButton
                 android:id="@+id/back_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:background="@drawable/tw_input_bg"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"
-                android:text="&lt;"
-                android:textColor="@color/tw_text_primary"
-                android:textSize="18sp" />
+                android:contentDescription="@null"
+                android:padding="10dp"
+                android:src="@drawable/ic_arrow_back"
+                android:tint="@color/tw_text_primary" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
                 android:layout_weight="1"
+                android:fontFamily="@font/barlow_semibold"
                 android:text="Sobre"
                 android:textColor="@color/tw_text_primary"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textSize="18sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -64,38 +61,86 @@
                         android:contentDescription="@string/app_name"
                         android:src="@drawable/logo_autodriver" />
 
-                    <TextView
-                        style="@style/TwCardTitle"
-                        android:text="O que é o Autodriver" />
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_marginEnd="6dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_info"
+                            android:tint="@color/tw_text_secondary" />
+
+                        <TextView
+                            style="@style/TwCardTitle"
+                            android:text="O que é o Autodriver" />
+                    </LinearLayout>
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
+                        android:fontFamily="@font/barlow_regular"
                         android:text="O Autodriver é um assistente para motoristas de aplicativo. Ele acompanha as ofertas de corrida do Uber, 99 e inDrive e ajuda você a decidir, em segundos, se vale a pena aceitar."
                         android:textColor="@color/tw_text_secondary" />
 
-                    <TextView
-                        style="@style/TwCardTitle"
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:layout_marginTop="20dp"
-                        android:text="Como funciona" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_marginEnd="6dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_visibility"
+                            android:tint="@color/tw_text_secondary" />
+
+                        <TextView
+                            style="@style/TwCardTitle"
+                            android:text="Como funciona" />
+                    </LinearLayout>
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
+                        android:fontFamily="@font/barlow_regular"
                         android:text="Você define um valor mínimo por km para aceitar e um valor máximo para recusar. Quando uma corrida aparece, o Autodriver calcula o valor por km e mostra um card flutuante por cima do app: verde quando a corrida vale a pena, vermelho quando está abaixo do que você aceita."
                         android:textColor="@color/tw_text_secondary" />
 
-                    <TextView
-                        style="@style/TwCardTitle"
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:layout_marginTop="20dp"
-                        android:text="Privacidade" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_marginEnd="6dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_lock"
+                            android:tint="@color/tw_text_secondary" />
+
+                        <TextView
+                            style="@style/TwCardTitle"
+                            android:text="Privacidade" />
+                    </LinearLayout>
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
+                        android:fontFamily="@font/barlow_regular"
                         android:text="O app roda no seu celular e usa a permissão de sobreposição apenas para exibir o card flutuante. Nenhuma corrida ou dado pessoal é enviado para servidores externos."
                         android:textColor="@color/tw_text_secondary" />
                 </LinearLayout>

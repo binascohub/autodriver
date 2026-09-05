@@ -4,18 +4,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    app:cardBackgroundColor="@color/tw_surface"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="8dp"
-    app:strokeColor="@color/tw_border"
-    app:strokeWidth="1dp">
+    app:cardBackgroundColor="@color/tw_input_bg"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="10dp"
+    app:strokeColor="@color/accent_amber"
+    app:strokeWidth="1.5dp">
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:minWidth="220dp"
+        android:minWidth="240dp"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:padding="22dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -34,28 +34,46 @@
                 android:id="@+id/overlay_close_button"
                 android:layout_width="28dp"
                 android:layout_height="28dp"
-                android:background="@drawable/tw_input_bg"
+                android:background="@drawable/tw_icon_button_bg"
+                android:fontFamily="@font/barlow_medium"
                 android:gravity="center"
                 android:text="×"
                 android:textColor="@color/tw_text_primary"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textSize="16sp" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/overlay_value_per_km"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:textColor="@color/tw_text_primary"
-            android:textSize="32sp"
-            android:textStyle="bold" />
+            android:layout_marginTop="14dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/overlay_value_per_km"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/plex_mono_bold"
+                android:textColor="@color/accent_amber"
+                android:textSize="44sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_marginBottom="6dp"
+                android:fontFamily="@font/plex_mono_medium"
+                android:letterSpacing="0.06"
+                android:text="R$/KM"
+                android:textColor="@color/tw_text_secondary"
+                android:textSize="13sp" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/overlay_breakdown"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="6dp"
+            android:fontFamily="@font/barlow_regular"
             android:textColor="@color/tw_text_secondary"
             android:textSize="13sp" />
     </LinearLayout>

@@ -18,28 +18,25 @@
             android:orientation="horizontal"
             android:padding="16dp">
 
-            <androidx.appcompat.widget.AppCompatButton
+            <ImageButton
                 android:id="@+id/back_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:background="@drawable/tw_input_bg"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"
-                android:text="&lt;"
-                android:textColor="@color/tw_text_primary"
-                android:textSize="18sp" />
+                android:contentDescription="@null"
+                android:padding="10dp"
+                android:src="@drawable/ic_arrow_back"
+                android:tint="@color/tw_text_primary" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
                 android:layout_weight="1"
+                android:fontFamily="@font/barlow_semibold"
                 android:text="Histórico"
                 android:textColor="@color/tw_text_primary"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textSize="18sp" />
         </LinearLayout>
 
         <com.google.android.material.card.MaterialCardView

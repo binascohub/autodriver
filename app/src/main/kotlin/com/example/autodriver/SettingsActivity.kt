@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Button
+import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -15,6 +17,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private lateinit var visibleSecondsSlider: Slider
     private lateinit var visibleSecondsLabel: TextView
+    private lateinit var accessibilityPermissionIcon: ImageView
     private lateinit var accessibilityPermissionStatus: TextView
     private lateinit var accessibilityPermissionButton: Button
     private lateinit var historyOverlaySwitch: SwitchMaterial
@@ -24,7 +27,7 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
-        findViewById<Button>(R.id.back_button).setOnClickListener { finish() }
+        findViewById<ImageButton>(R.id.back_button).setOnClickListener { finish() }
 
         valueCardOverlaySwitch = findViewById(R.id.value_card_overlay_switch)
         valueCardOverlaySwitch.isChecked = Config.showValueCardOverlay
@@ -58,6 +61,7 @@ class SettingsActivity : AppCompatActivity() {
             startService(intent)
         }
 
+        accessibilityPermissionIcon = findViewById(R.id.accessibility_permission_icon)
         accessibilityPermissionStatus = findViewById(R.id.accessibility_permission_status)
         accessibilityPermissionButton = findViewById(R.id.accessibility_permission_button)
         accessibilityPermissionButton.setOnClickListener {
@@ -96,10 +100,11 @@ class SettingsActivity : AppCompatActivity() {
         ).orEmpty()
         val granted = enabledServices.contains("$packageName/${RideAccessibilityService::class.java.name}")
 
+        val color = ContextCompat.getColor(this, if (granted) R.color.tw_green_400 else R.color.tw_red_400)
+        accessibilityPermissionIcon.setImageResource(if (granted) R.drawable.ic_check_circle else R.drawable.ic_cancel)
+        accessibilityPermissionIcon.setColorFilter(color)
         accessibilityPermissionStatus.text = if (granted) "Concedida" else "Não concedida"
-        accessibilityPermissionStatus.setTextColor(
-            ContextCompat.getColor(this, if (granted) R.color.tw_green_400 else R.color.tw_red_400)
-        )
+        accessibilityPermissionStatus.setTextColor(color)
         accessibilityPermissionButton.visibility = if (granted) android.view.View.GONE else android.view.View.VISIBLE
     }
 }

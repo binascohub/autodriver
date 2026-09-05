@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="tw_bg">#0F172A</color>
-    <color name="tw_header_bg">#0B1220</color>
-    <color name="tw_surface">#1E293B</color>
-    <color name="tw_border">#334155</color>
-    <color name="tw_input_bg">#0F172A</color>
-    <color name="tw_text_primary">#F8FAFC</color>
-    <color name="tw_text_secondary">#94A3B8</color>
-    <color name="tw_blue_600">#407EB8</color>
-    <color name="tw_red_400">#F87171</color>
-    <color name="tw_red_600">#DC2626</color>
-    <color name="tw_green_400">#4ADE80</color>
-    <color name="tw_green_600">#16A34A</color>
+    <!-- Dashboard-instrument palette: warm near-black housing, amber gauge
+         accent, and signal red/green calibrated to read like a taxi meter's
+         lit digits rather than a flat Material alert fill. -->
+    <color name="tw_bg">#12130E</color>
+    <color name="tw_header_bg">#0A0B07</color>
+    <color name="tw_surface">#1C1E15</color>
+    <color name="tw_border">#34362A</color>
+    <color name="tw_input_bg">#0D0E09</color>
+    <color name="tw_text_primary">#F4F1E4</color>
+    <color name="tw_text_secondary">#96967C</color>
+    <color name="accent_amber">#FFB100</color>
+    <color name="ink_on_amber">#1A1204</color>
+    <color name="tw_red_400">#FF6B57</color>
+    <color name="tw_red_600">#C81E1E</color>
+    <color name="tw_green_400">#6BE37B</color>
+    <color name="tw_green_600">#1E8A3E</color>
     <color name="tw_white">#FFFFFF</color>
 </resources>

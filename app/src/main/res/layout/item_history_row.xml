@@ -6,10 +6,19 @@
     android:gravity="center_vertical"
     android:orientation="horizontal">
 
+    <ImageView
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:layout_marginEnd="4dp"
+        android:contentDescription="@null"
+        android:src="@drawable/ic_schedule"
+        android:tint="@color/tw_text_secondary" />
+
     <TextView
         android:id="@+id/history_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:fontFamily="@font/plex_mono_regular"
         android:textColor="@color/tw_text_secondary"
         android:textSize="12sp" />
 
@@ -18,26 +27,42 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
+        android:fontFamily="@font/plex_mono_semibold"
         android:textColor="@color/tw_text_primary"
-        android:textSize="12sp"
-        android:textStyle="bold" />
+        android:textSize="12sp" />
+
+    <ImageView
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="4dp"
+        android:contentDescription="@null"
+        android:src="@drawable/ic_location"
+        android:tint="@color/tw_text_secondary" />
 
     <TextView
         android:id="@+id/history_destination"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:layout_weight="1"
         android:ellipsize="end"
+        android:fontFamily="@font/barlow_regular"
         android:maxLines="1"
         android:textColor="@color/tw_text_secondary"
         android:textSize="12sp" />
+
+    <ImageView
+        android:id="@+id/history_outcome_icon"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="4dp"
+        android:contentDescription="@null" />
 
     <TextView
         android:id="@+id/history_outcome"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:textSize="12sp"
-        android:textStyle="bold" />
+        android:fontFamily="@font/barlow_semibold"
+        android:textSize="12sp" />
 </LinearLayout>

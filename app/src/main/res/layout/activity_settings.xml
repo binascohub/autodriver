@@ -19,28 +19,25 @@
             android:orientation="horizontal"
             android:padding="16dp">
 
-            <androidx.appcompat.widget.AppCompatButton
+            <ImageButton
                 android:id="@+id/back_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:background="@drawable/tw_input_bg"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"
-                android:text="&lt;"
-                android:textColor="@color/tw_text_primary"
-                android:textSize="18sp" />
+                android:contentDescription="@null"
+                android:padding="10dp"
+                android:src="@drawable/ic_arrow_back"
+                android:tint="@color/tw_text_primary" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
                 android:layout_weight="1"
+                android:fontFamily="@font/barlow_semibold"
                 android:text="Configurações"
                 android:textColor="@color/tw_text_primary"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textSize="18sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -100,8 +97,8 @@
                         android:value="5"
                         android:valueFrom="1"
                         android:valueTo="10"
-                        app:thumbColor="@color/tw_blue_600"
-                        app:trackColorActive="@color/tw_blue_600"
+                        app:thumbColor="@color/accent_amber"
+                        app:trackColorActive="@color/accent_amber"
                         app:trackColorInactive="@color/tw_border" />
 
                     <androidx.appcompat.widget.AppCompatButton
@@ -124,9 +121,24 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <TextView
-                        style="@style/TwCardTitle"
-                        android:text="Leitura Automática (Uber)" />
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_marginEnd="6dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_visibility"
+                            android:tint="@color/tw_text_secondary" />
+
+                        <TextView
+                            style="@style/TwCardTitle"
+                            android:text="Leitura Automática (Uber)" />
+                    </LinearLayout>
 
                     <TextView
                         android:layout_width="match_parent"
@@ -149,11 +161,18 @@
                             android:text="Serviço de Acessibilidade"
                             android:textColor="@color/tw_text_primary" />
 
+                        <ImageView
+                            android:id="@+id/accessibility_permission_icon"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_marginStart="8dp"
+                            android:contentDescription="@null" />
+
                         <TextView
                             android:id="@+id/accessibility_permission_status"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
+                            android:layout_marginStart="6dp"
                             android:textStyle="bold" />
                     </LinearLayout>
 

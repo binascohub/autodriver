@@ -1,6 +1,7 @@
 package com.example.autodriver
 
 import android.view.View
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import java.text.SimpleDateFormat
@@ -41,11 +42,15 @@ fun bindTripRecordRow(row: View, record: TripRecord) {
     row.findViewById<TextView>(R.id.history_destination).text = record.destination
 
     val outcomeView = row.findViewById<TextView>(R.id.history_outcome)
-    val (label, colorRes) = when (record.outcome) {
-        TripOutcome.ACCEPTED -> "Aceito" to R.color.tw_green_400
-        TripOutcome.REJECTED -> "Recusado" to R.color.tw_red_400
-        TripOutcome.NO_ACTION -> "Sem ação" to R.color.tw_text_secondary
+    val outcomeIcon = row.findViewById<ImageView>(R.id.history_outcome_icon)
+    val (label, colorRes, iconRes) = when (record.outcome) {
+        TripOutcome.ACCEPTED -> Triple("Aceito", R.color.tw_green_400, R.drawable.ic_check_circle)
+        TripOutcome.REJECTED -> Triple("Recusado", R.color.tw_red_400, R.drawable.ic_cancel)
+        TripOutcome.NO_ACTION -> Triple("Sem ação", R.color.tw_text_secondary, R.drawable.ic_remove)
     }
+    val color = ContextCompat.getColor(row.context, colorRes)
     outcomeView.text = label
-    outcomeView.setTextColor(ContextCompat.getColor(row.context, colorRes))
+    outcomeView.setTextColor(color)
+    outcomeIcon.setImageResource(iconRes)
+    outcomeIcon.setColorFilter(color)
 }
