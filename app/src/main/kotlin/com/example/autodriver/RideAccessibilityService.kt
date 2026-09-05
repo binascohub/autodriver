@@ -246,6 +246,7 @@ class RideAccessibilityService : AccessibilityService() {
         intent.putExtra(OverlayCardService.EXTRA_ACCEPT_THRESHOLD, Config.acceptWhenValueGreaterThan)
         intent.putExtra(OverlayCardService.EXTRA_REJECT_THRESHOLD, Config.rejectWhenValueLessOrEqualTo)
         intent.putExtra(OverlayCardService.EXTRA_VISIBLE_SECONDS, Config.overlayVisibleSeconds)
+        intent.putExtra(OverlayCardService.EXTRA_DESTINATION, currentOfferDestination)
         startService(intent)
         offerShowing = true
         return true

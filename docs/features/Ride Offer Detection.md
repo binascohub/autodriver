@@ -41,6 +41,7 @@ The offer card's price, the "R$X,XX/km aprox." line, and the distance breakdown 
 - `EXTRA_TOTAL_VALUE`, `EXTRA_TOTAL_KM` — parsed offer data.
 - `EXTRA_ACCEPT_THRESHOLD`, `EXTRA_REJECT_THRESHOLD` — current values from [[Config Reference|Config]].
 - `EXTRA_VISIBLE_SECONDS` — current `Config.overlayVisibleSeconds`.
+- `EXTRA_DESTINATION` — `currentOfferDestination`, the neighborhood/city text from `extractDestination` (see above).
 
 See [[Value Per KM Overlay]] for what happens next.
 

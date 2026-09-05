@@ -78,7 +78,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Pré-visualiza o card com o valor por km, usando os dados de exemplo do print (R$ 10,96 ÷ 5,8 km)."
+                        android:text="Pré-visualiza o card com o valor por km e o bairro/cidade de destino, usando dados de exemplo."
                         android:textColor="@color/tw_text_secondary" />
 
                     <TextView

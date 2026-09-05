@@ -32,7 +32,8 @@ class OverlayCardService : Service() {
         val acceptThreshold = intent?.getFloatExtra(EXTRA_ACCEPT_THRESHOLD, 0f) ?: 0f
         val rejectThreshold = intent?.getFloatExtra(EXTRA_REJECT_THRESHOLD, 0f) ?: 0f
         val visibleSeconds = intent?.getIntExtra(EXTRA_VISIBLE_SECONDS, 5) ?: 5
-        showCard(totalValue, totalKm, acceptThreshold, rejectThreshold, visibleSeconds)
+        val destination = intent?.getStringExtra(EXTRA_DESTINATION).orEmpty()
+        showCard(totalValue, totalKm, acceptThreshold, rejectThreshold, visibleSeconds, destination)
         return START_NOT_STICKY
     }
 
@@ -41,7 +42,8 @@ class OverlayCardService : Service() {
         totalKm: Float,
         acceptThreshold: Float,
         rejectThreshold: Float,
-        visibleSeconds: Int
+        visibleSeconds: Int,
+        destination: String
     ) {
         if (overlayView != null) return
 
@@ -51,8 +53,7 @@ class OverlayCardService : Service() {
         val valuePerKm = if (totalKm > 0f) totalValue / totalKm else 0f
         view.findViewById<TextView>(R.id.overlay_value_per_km).text =
             String.format(Locale("pt", "BR"), "%.2f", valuePerKm)
-        view.findViewById<TextView>(R.id.overlay_breakdown).text =
-            String.format(Locale("pt", "BR"), "R$ %.2f ÷ %.1f km", totalValue, totalKm)
+        view.findViewById<TextView>(R.id.overlay_destination).text = destination
         view.findViewById<View>(R.id.overlay_close_button).setOnClickListener { stopSelf() }
 
         // The numeral itself lights up amber/red/green like a taxi meter's
@@ -103,5 +104,6 @@ class OverlayCardService : Service() {
         const val EXTRA_ACCEPT_THRESHOLD = "extra_accept_threshold"
         const val EXTRA_REJECT_THRESHOLD = "extra_reject_threshold"
         const val EXTRA_VISIBLE_SECONDS = "extra_visible_seconds"
+        const val EXTRA_DESTINATION = "extra_destination"
     }
 }
