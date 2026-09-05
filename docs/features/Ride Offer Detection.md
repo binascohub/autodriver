@@ -47,4 +47,3 @@ See [[Value Per KM Overlay]] for what happens next.
 ## Known limitations
 
 - Price/distance regexes assume Brazilian formatting (`R$ 12,34`, distance in `km` with a dot decimal separator) — not internationalized.
-- `acceptEnabled`/`rejectEnabled` flags from `Config` are read by `OverlayCardService` implicitly through the threshold values only; the boolean flags themselves aren't checked before applying color logic (see the caveat in [[Config Reference]]).

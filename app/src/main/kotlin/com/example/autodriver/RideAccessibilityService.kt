@@ -259,8 +259,6 @@ class RideAccessibilityService : AccessibilityService() {
      * [onOcrResult]). Kept as the decision logic ready to be wired to a real
      * tap mechanism once one exists. */
     private fun maybeAutoReject(texts: List<String>, cardBitmap: Bitmap, cropTopOffsetPx: Int): Boolean {
-        if (!Config.rejectEnabled) return false
-
         val valuePerKm = extractValuePerKm(texts)
         val destinationBlocked = Config.isDestinationBlocked(currentOfferDestination)
         val belowThreshold = valuePerKm != null && valuePerKm <= Config.rejectWhenValueLessOrEqualTo
@@ -318,8 +316,6 @@ class RideAccessibilityService : AccessibilityService() {
      * currently reaches Uber's offer buttons, so nothing is actually
      * accepted and the driver decides manually. */
     private fun maybeAutoAccept(texts: List<String>): Boolean {
-        if (!Config.acceptEnabled) return false
-
         val valuePerKm = extractValuePerKm(texts) ?: return false
         if (valuePerKm < Config.acceptWhenValueGreaterThan) return false
 

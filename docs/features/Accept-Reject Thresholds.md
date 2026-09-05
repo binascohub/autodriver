@@ -14,10 +14,10 @@ Lets the user define value-per-km thresholds so the [[Value Per KM Overlay]] can
 
 On the main screen:
 
-- **Accept switch** (`accept_enabled_switch`) + **accept value** field (`accept_when_value`) → `Config.acceptEnabled`, `Config.acceptWhenValueGreaterThan`.
-- **Reject switch** (`reject_enabled_switch`) + **reject value** field (`reject_when_value`) → `Config.rejectEnabled`, `Config.rejectWhenValueLessOrEqualTo`.
+- **Accept value** field (`accept_when_value`) → `Config.acceptWhenValueGreaterThan`.
+- **Reject value** field (`reject_when_value`) → `Config.rejectWhenValueLessOrEqualTo`.
 
-Switch toggles save immediately (`PreferencesManager.saveConfig`). Threshold text fields save on every keystroke via a shared `TextWatcher` (`thresholdWatcher` → `saveThresholdsIfValid`).
+There is no on/off switch for either — both thresholds are always active (the earlier `accept_enabled_switch`/`reject_enabled_switch` toggles were removed since the app currently only alerts, never acts automatically; see [[Auto-Reject Low Offers]]). Threshold text fields save on every keystroke via a shared `TextWatcher` (`thresholdWatcher` → `saveThresholdsIfValid`).
 
 ## Validation
 
@@ -35,4 +35,4 @@ Switch toggles save immediately (`PreferencesManager.saveConfig`). Threshold tex
 - `valuePerKm >= acceptThreshold` → card background becomes `R.color.tw_green_600` (accept color).
 - Otherwise the card keeps its default (neutral) background.
 
-Note: `acceptEnabled` is stored in `Config` and editable from the UI, but is not currently read by `OverlayCardService` — only the accept threshold value is applied to coloring. `rejectEnabled` also gates [[Auto-Reject Low Offers]]'s decision logic, but that feature is currently alert-only (logs the decision, takes no action) — see its status note for why. See [[Config Reference]] for the full breakdown.
+Note: [[Auto-Reject Low Offers]]'s decision logic is currently alert-only (logs the decision, takes no action) — see its status note for why. See [[Config Reference]] for the full breakdown.

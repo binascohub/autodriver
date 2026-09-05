@@ -35,20 +35,19 @@ The offer card (product name, total price, the "R$X,XX/km aprox." line, distance
 ## How the threshold check works
 
 1. `maybeAutoReject(texts, cardBitmap, cropTopOffsetPx)` runs on every successful OCR pass while an offer is showing.
-2. It's a no-op unless `Config.rejectEnabled` is `true`.
-3. It reads the value/km directly off the screen using `VALUE_PER_KM_REGEX` = `R\$\s*(\d+,\d{2})\s*/\s*km`, matching the "R$1,53/km" text Uber already renders on the card — this is the same number the driver sees, not a recomputed value.
-4. It also checks `Config.isDestinationBlocked(currentOfferDestination)` — a case-insensitive substring match against every entry in `Config.locations`.
-5. The reject condition is met if *either* the value/km is at or below `Config.rejectWhenValueLessOrEqualTo` *or* the destination is blocked — this only produces a log line today (see status note above), not an action.
-6. `currentOfferDestination` (and `currentOfferValuePerKm`) reset to their unknown/`null` defaults whenever a new offer starts (the `!offerActive` branch in `onOcrResult`), so a value read from the *previous* offer can never leak into this decision if the new offer's own OCR pass hasn't resolved a destination yet.
-7. The log line for a destination-blocked reject never includes the destination text itself — only "destination is on the reject list" — since `Log.d` output ships in release builds and ride details must not appear there.
+2. It reads the value/km directly off the screen using `VALUE_PER_KM_REGEX` = `R\$\s*(\d+,\d{2})\s*/\s*km`, matching the "R$1,53/km" text Uber already renders on the card — this is the same number the driver sees, not a recomputed value.
+3. It also checks `Config.isDestinationBlocked(currentOfferDestination)` — a case-insensitive substring match against every entry in `Config.locations`.
+4. The reject condition is met if *either* the value/km is at or below `Config.rejectWhenValueLessOrEqualTo` *or* the destination is blocked — this only produces a log line today (see status note above), not an action.
+5. `currentOfferDestination` (and `currentOfferValuePerKm`) reset to their unknown/`null` defaults whenever a new offer starts (the `!offerActive` branch in `onOcrResult`), so a value read from the *previous* offer can never leak into this decision if the new offer's own OCR pass hasn't resolved a destination yet.
+6. The log line for a destination-blocked reject never includes the destination text itself — only "destination is on the reject list" — since `Log.d` output ships in release builds and ride details must not appear there.
 
 ## How the tap location is computed (currently unused, see status note above)
 
 There's no accessible node to click, so `closeCurrentOffer`/`acceptCurrentOffer` locate a tap point and `tapAt` simulates a touch with `dispatchGesture` (requires `android:canPerformGestures="true"`, added to [accessibility_service_config.xml](../../app/src/main/res/xml/accessibility_service_config.xml)) — this call never actually closes the card (see status note above), but is kept as the plumbing to swap a working tap mechanism into:
 
 1. `closeCurrentOffer` first tries [ButtonImageMatcher](../../app/src/main/kotlin/com/example/autodriver/ButtonImageMatcher.kt) to locate the close ("X") button by template match against `close_button_template.png` (bundled in `app/src/main/assets/`) — the button's appearance is stable across offers even though its Y position shifts with card height (more stops/legs push the card's top edge higher).
-2. If no confident match is found and a position was captured via Settings > "Capturar posição do X", it falls back to `sweepTapCloseButton`: a column of taps starting at that captured position and sweeping upward by `SWEEP_STEP_PX` every `SWEEP_STEP_DELAY_MS`, up to `SWEEP_SPAN_PX` total.
-3. `acceptCurrentOffer` only ever taps the position captured via Settings > "Capturar posição do Aceitar" — there's no safe geometry-based guess for a full-width bottom button.
+2. If no confident match is found, it falls back to `sweepTapCloseButton` using `Config.closeButtonX`/`closeButtonY` as the starting point: a column of taps sweeping upward by `SWEEP_STEP_PX` every `SWEEP_STEP_DELAY_MS`, up to `SWEEP_SPAN_PX` total. `acceptCurrentOffer` similarly only taps `Config.acceptButtonX`/`acceptButtonY` — there's no safe geometry-based guess for a full-width bottom button.
+3. These `Config` coordinates are set by [CoordinateCaptureService](../../app/src/main/kotlin/com/example/autodriver/CoordinateCaptureService.kt), which is no longer wired to any button in the UI (the "Capturar posição" buttons were removed from the main screen since the app is alert-only — see status note above); the fallback sweep is effectively inert unless a coordinate was captured before that removal or the service is started some other way.
 4. Repeated triggers are throttled to one attempt per 1.5s (`AUTO_ACTION_THROTTLE_MS`) via `lastAutoRejectAt`/`lastAutoAcceptAt`.
 
 ## Known limitations
